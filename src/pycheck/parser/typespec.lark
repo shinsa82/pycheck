@@ -1,0 +1,70 @@
+// rewrite version of typespec (aka type annotation) grammar.
+// this version avoids use of python3 grammar as much as possible.
+
+?start: type
+
+// 1. func type (arrow) has lower priority over union type. thus
+// "x:int -> int | str" is understood as "x:int -> (int | str)"
+
+// 2. arrow type is right-associative (typical in functional lang.),
+// but it is obvious in dependent functional types:
+// "x:int -> y:int -> int" is parsed as "x:int -> (y:int -> int)"
+// and cannot be parsed as "(x:int -> y:int) -> int", which is not syntactically correct.
+
+// // type_na = type-no-arrow: types that do not contain any arrows (->).
+// // required for unambiguity of the grammar.
+// ?type_na: py3
+//         | "(" type ")"
+//         | "{" NAME ":" type "|" py3 "}" -> ref_type
+
+// // types that can be parsed by Python 3 grammar.
+// // keep "py3" in parse tree.
+// py3: test
+
+// // idea borrowed from python3.lark
+// typedparam: NAME ":" type_na
+//           | "(" NAME ":" type_na ")"
+
+// // top-level types. expresses right-associativity of "->".
+// ?type: type_na
+//      | typedparam "->" type -> func_type
+
+// // product_type:
+
+?type: params_plus "->" type -> func_type
+    | "(" params ")" "->" type -> func_type
+    | sum_type
+
+// one or more "typedparam"s.
+params_plus: typedparam ("," typedparam)*
+
+// zero or more "typedparam"s.
+params: // empty
+      | typedparam ("," typedparam)*
+
+// variable name and its type
+typedparam: NAME ":" type
+
+?sum_type: atom_type
+         | atom_type ("|" atom_type)+
+
+?atom_type: none
+     | NAME -> base
+     | NAME "[" types "]" -> generic 
+     | "(" type ")"
+     | "{" var_decl type "|" pred "}" -> ref_type // introduced type-less refinement 
+
+var_decl: | NAME ":"
+
+types: type ("," type)*
+
+!none.2: "None"
+       | "NoneType"
+
+// predicate is any callable object.
+pred: test 
+
+%import .python3.test
+%import .python3.NAME
+%import common.WS
+%ignore WS

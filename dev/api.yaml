@@ -1,0 +1,107 @@
+openapi: '3.0.3'
+info:
+  title: Test API
+  version: '0.1'
+servers:
+  - url: 'http://localhost:8080/testapi/v0.1'
+    description: Development server (runs locally)
+paths:
+  /test_path/{val}:
+    get:
+      operationId: impl.test_path
+      summary: Test method with a parameter in path
+      parameters:
+        - name: val
+          in: path
+          required: true
+          schema:
+            type: string
+          example: foo          
+      responses:
+        '200':
+          description: Normal response
+          content:
+            text/plain:
+              example: operation test_path called with argument foo
+  /test_query:
+    get:
+      operationId: impl.test_query
+      summary: Test method with a parameter in query
+      parameters:
+        - name: val
+          in: query
+          required: true
+          schema:
+            type: string
+          example: foo          
+      responses:
+        '200':
+          description: Normal response
+          content:
+            text/plain:
+              example: operation test_query called with argument foo
+  /test_not_implemented:
+    get:
+      operationId: impl.test_not_implemented
+      summary: Test method that is not implemented
+      description: Method to check behaviour of auto-mocking by connexion.
+      parameters:
+        - name: val
+          in: query
+          required: true
+          schema:
+            type: string
+          example: foo
+      responses:
+        '200':
+          description: Normal response
+          content:
+            text/plain:
+              example: operation test_not_implemented called with argument foo
+  /test_body:
+    post:
+      operationId: impl.test_body
+      summary: Test method with a parameter in body
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: foo
+      responses:
+        '200':
+          description: Normal response
+          content:
+            text/plain:
+              example: operation test_body called with argument foo
+  /test_csv:
+    post:
+      operationId: impl.test_csv
+      summary: Test method with CSV input and output
+      description: |-
+        This method inputs a DataFrame in CSV format as request body
+        and returns modified DataFrame with new columns, also in CSV format.
+        Input DataFrame should have an AccountId column of type int.
+        この AccountId はいくつかのコードが結合されているという想定で、下2桁を捨てた残りが4桁の
+        BranchCode として出力の DataFrame に追加される。なお、出力が4桁に満たない場合は 0 で詰められる。
+        また、返り値には Id 列が追加される。これは 0 以上の整数値で、一意であることが保証されている。
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+            example: |-
+              Name,AccountId
+              Tom,9200
+              Jerry,12391
+      responses:
+        '200':
+          description: Normal response
+          content:
+            text/csv:
+              example: |-
+                Id,Name,AccountId,BranchCode
+                0,Tom,9200,0092
+                1,Jerry,12391,0123

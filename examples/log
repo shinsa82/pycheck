@@ -1,0 +1,328 @@
+2021-02-04 14:53:45,715 [INFO] pycheck: check: func=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,715 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: rand_int: generated=34
+2021-02-04 14:53:45,716 [INFO] pycheck: generated func args: x=34
+2021-02-04 14:53:45,716 [INFO] pycheck: result res=33
+2021-02-04 14:53:45,716 [INFO] pycheck: beta: v=33, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: passed=1
+2021-02-04 14:53:45,716 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,716 [INFO] pycheck: rand_int: generated=14
+2021-02-04 14:53:45,717 [INFO] pycheck: generated func args: x=14
+2021-02-04 14:53:45,717 [INFO] pycheck: result res=13
+2021-02-04 14:53:45,717 [INFO] pycheck: beta: v=13, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: passed=2
+2021-02-04 14:53:45,717 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,717 [INFO] pycheck: rand_int: generated=-17
+2021-02-04 14:53:45,717 [INFO] pycheck: rand_int_refined: assume failed. generated=-17, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,717 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,717 [INFO] pycheck: rand_int: generated=5
+2021-02-04 14:53:45,718 [INFO] pycheck: generated func args: x=5
+2021-02-04 14:53:45,718 [INFO] pycheck: result res=4
+2021-02-04 14:53:45,718 [INFO] pycheck: beta: v=4, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: passed=3
+2021-02-04 14:53:45,718 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,718 [INFO] pycheck: rand_int: generated=-14
+2021-02-04 14:53:45,718 [INFO] pycheck: rand_int_refined: assume failed. generated=-14, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,719 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,719 [INFO] pycheck: rand_int: generated=-15
+2021-02-04 14:53:45,719 [INFO] pycheck: rand_int_refined: assume failed. generated=-15, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,719 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,719 [INFO] pycheck: rand_int: generated=-3
+2021-02-04 14:53:45,719 [INFO] pycheck: rand_int_refined: assume failed. generated=-3, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,719 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,719 [INFO] pycheck: rand_int: generated=11
+2021-02-04 14:53:45,719 [INFO] pycheck: generated func args: x=11
+2021-02-04 14:53:45,719 [INFO] pycheck: result res=10
+2021-02-04 14:53:45,719 [INFO] pycheck: beta: v=10, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,719 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: passed=4
+2021-02-04 14:53:45,720 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: rand_int: generated=6
+2021-02-04 14:53:45,720 [INFO] pycheck: generated func args: x=6
+2021-02-04 14:53:45,720 [INFO] pycheck: result res=5
+2021-02-04 14:53:45,720 [INFO] pycheck: beta: v=5, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,720 [INFO] pycheck: passed=5
+2021-02-04 14:53:45,721 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,721 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,721 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,721 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,721 [INFO] pycheck: rand_int: generated=-4
+2021-02-04 14:53:45,721 [INFO] pycheck: rand_int_refined: assume failed. generated=-4, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,721 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,721 [INFO] pycheck: rand_int: generated=-9
+2021-02-04 14:53:45,721 [INFO] pycheck: rand_int_refined: assume failed. generated=-9, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,721 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,721 [INFO] pycheck: rand_int: generated=9
+2021-02-04 14:53:45,721 [INFO] pycheck: generated func args: x=9
+2021-02-04 14:53:45,721 [INFO] pycheck: result res=8
+2021-02-04 14:53:45,721 [INFO] pycheck: beta: v=8, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: passed=6
+2021-02-04 14:53:45,722 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: rand_int: generated=13
+2021-02-04 14:53:45,722 [INFO] pycheck: generated func args: x=13
+2021-02-04 14:53:45,722 [INFO] pycheck: result res=12
+2021-02-04 14:53:45,722 [INFO] pycheck: beta: v=12, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,722 [INFO] pycheck: passed=7
+2021-02-04 14:53:45,722 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: rand_int: generated=9
+2021-02-04 14:53:45,723 [INFO] pycheck: generated func args: x=9
+2021-02-04 14:53:45,723 [INFO] pycheck: result res=8
+2021-02-04 14:53:45,723 [INFO] pycheck: beta: v=8, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: passed=8
+2021-02-04 14:53:45,723 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,723 [INFO] pycheck: rand_int: generated=-9
+2021-02-04 14:53:45,723 [INFO] pycheck: rand_int_refined: assume failed. generated=-9, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,723 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,724 [INFO] pycheck: rand_int: generated=-22
+2021-02-04 14:53:45,724 [INFO] pycheck: rand_int_refined: assume failed. generated=-22, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,724 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,724 [INFO] pycheck: rand_int: generated=22
+2021-02-04 14:53:45,724 [INFO] pycheck: generated func args: x=22
+2021-02-04 14:53:45,724 [INFO] pycheck: result res=21
+2021-02-04 14:53:45,724 [INFO] pycheck: beta: v=21, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: passed=9
+2021-02-04 14:53:45,724 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: rand_int: generated=24
+2021-02-04 14:53:45,724 [INFO] pycheck: generated func args: x=24
+2021-02-04 14:53:45,724 [INFO] pycheck: result res=23
+2021-02-04 14:53:45,724 [INFO] pycheck: beta: v=23, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,724 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: passed=10
+2021-02-04 14:53:45,725 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: rand_int: generated=8
+2021-02-04 14:53:45,725 [INFO] pycheck: generated func args: x=8
+2021-02-04 14:53:45,725 [INFO] pycheck: result res=7
+2021-02-04 14:53:45,725 [INFO] pycheck: beta: v=7, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,725 [INFO] pycheck: passed=11
+2021-02-04 14:53:45,726 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: rand_int: generated=16
+2021-02-04 14:53:45,726 [INFO] pycheck: generated func args: x=16
+2021-02-04 14:53:45,726 [INFO] pycheck: result res=15
+2021-02-04 14:53:45,726 [INFO] pycheck: beta: v=15, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: passed=12
+2021-02-04 14:53:45,726 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,726 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: rand_int: generated=-6
+2021-02-04 14:53:45,727 [INFO] pycheck: rand_int_refined: assume failed. generated=-6, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,727 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,727 [INFO] pycheck: rand_int: generated=3
+2021-02-04 14:53:45,727 [INFO] pycheck: generated func args: x=3
+2021-02-04 14:53:45,727 [INFO] pycheck: result res=2
+2021-02-04 14:53:45,727 [INFO] pycheck: beta: v=2, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: passed=13
+2021-02-04 14:53:45,727 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: rand_int: generated=13
+2021-02-04 14:53:45,727 [INFO] pycheck: generated func args: x=13
+2021-02-04 14:53:45,727 [INFO] pycheck: result res=12
+2021-02-04 14:53:45,727 [INFO] pycheck: beta: v=12, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: passed=14
+2021-02-04 14:53:45,727 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,727 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,728 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,728 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int: generated=-7
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int_refined: assume failed. generated=-7, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,728 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int: generated=-15
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int_refined: assume failed. generated=-15, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,728 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int: generated=-16
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int_refined: assume failed. generated=-16, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,728 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,728 [INFO] pycheck: rand_int: generated=17
+2021-02-04 14:53:45,728 [INFO] pycheck: generated func args: x=17
+2021-02-04 14:53:45,728 [INFO] pycheck: result res=16
+2021-02-04 14:53:45,728 [INFO] pycheck: beta: v=16, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,728 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: passed=15
+2021-02-04 14:53:45,729 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: rand_int: generated=12
+2021-02-04 14:53:45,729 [INFO] pycheck: generated func args: x=12
+2021-02-04 14:53:45,729 [INFO] pycheck: result res=11
+2021-02-04 14:53:45,729 [INFO] pycheck: beta: v=11, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: passed=16
+2021-02-04 14:53:45,729 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,729 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: rand_int: generated=-37
+2021-02-04 14:53:45,730 [INFO] pycheck: rand_int_refined: assume failed. generated=-37, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,730 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,730 [INFO] pycheck: rand_int: generated=-5
+2021-02-04 14:53:45,730 [INFO] pycheck: rand_int_refined: assume failed. generated=-5, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,730 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,730 [INFO] pycheck: rand_int: generated=8
+2021-02-04 14:53:45,730 [INFO] pycheck: generated func args: x=8
+2021-02-04 14:53:45,730 [INFO] pycheck: result res=7
+2021-02-04 14:53:45,730 [INFO] pycheck: beta: v=7, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: passed=17
+2021-02-04 14:53:45,730 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,730 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int: generated=-14
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int_refined: assume failed. generated=-14, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,731 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int: generated=30
+2021-02-04 14:53:45,731 [INFO] pycheck: generated func args: x=30
+2021-02-04 14:53:45,731 [INFO] pycheck: result res=29
+2021-02-04 14:53:45,731 [INFO] pycheck: beta: v=29, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: passed=18
+2021-02-04 14:53:45,731 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int: generated=-29
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int_refined: assume failed. generated=-29, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,731 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,731 [INFO] pycheck: rand_int: generated=17
+2021-02-04 14:53:45,731 [INFO] pycheck: generated func args: x=17
+2021-02-04 14:53:45,731 [INFO] pycheck: result res=16
+2021-02-04 14:53:45,731 [INFO] pycheck: beta: v=16, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,731 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,732 [INFO] pycheck: passed=19
+2021-02-04 14:53:45,732 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,732 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,732 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,732 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int: generated=-25
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int_refined: assume failed. generated=-25, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,732 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int: generated=-8
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int_refined: assume failed. generated=-8, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,732 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int: generated=-18
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int_refined: assume failed. generated=-18, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,732 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int: generated=-31
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int_refined: assume failed. generated=-31, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,732 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,732 [INFO] pycheck: rand_int: generated=6
+2021-02-04 14:53:45,732 [INFO] pycheck: generated func args: x=6
+2021-02-04 14:53:45,732 [INFO] pycheck: result res=5
+2021-02-04 14:53:45,733 [INFO] pycheck: beta: v=5, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: passed=20
+2021-02-04 14:53:45,733 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: rand_int: generated=3
+2021-02-04 14:53:45,733 [INFO] pycheck: generated func args: x=3
+2021-02-04 14:53:45,733 [INFO] pycheck: result res=2
+2021-02-04 14:53:45,733 [INFO] pycheck: beta: v=2, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: passed=21
+2021-02-04 14:53:45,733 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: rand_int: generated=2
+2021-02-04 14:53:45,733 [INFO] pycheck: generated func args: x=2
+2021-02-04 14:53:45,733 [INFO] pycheck: result res=1
+2021-02-04 14:53:45,733 [INFO] pycheck: beta: v=1, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,733 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,734 [INFO] pycheck: passed=22
+2021-02-04 14:53:45,734 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,734 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,734 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,734 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int: generated=-6
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int_refined: assume failed. generated=-6, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,734 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int: generated=-8
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int_refined: assume failed. generated=-8, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,734 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int: generated=-23
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int_refined: assume failed. generated=-23, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,734 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,734 [INFO] pycheck: rand_int: generated=6
+2021-02-04 14:53:45,734 [INFO] pycheck: generated func args: x=6
+2021-02-04 14:53:45,734 [INFO] pycheck: result res=5
+2021-02-04 14:53:45,735 [INFO] pycheck: beta: v=5, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: passed=23
+2021-02-04 14:53:45,735 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: rand_int: generated=-26
+2021-02-04 14:53:45,735 [INFO] pycheck: rand_int_refined: assume failed. generated=-26, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,735 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,735 [INFO] pycheck: rand_int: generated=17
+2021-02-04 14:53:45,735 [INFO] pycheck: generated func args: x=17
+2021-02-04 14:53:45,735 [INFO] pycheck: result res=16
+2021-02-04 14:53:45,735 [INFO] pycheck: beta: v=16, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,735 [INFO] pycheck: passed=24
+2021-02-04 14:53:45,735 [INFO] pycheck: beta_func: f=<function dec at 0x1018633a0>, assumes=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>), asserts=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,736 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,736 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,736 [INFO] pycheck: rand: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,736 [INFO] pycheck: rand_int: generated=-12
+2021-02-04 14:53:45,736 [INFO] pycheck: rand_int_refined: assume failed. generated=-12, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,736 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,736 [INFO] pycheck: rand_int: generated=-16
+2021-02-04 14:53:45,736 [INFO] pycheck: rand_int_refined: assume failed. generated=-16, p=<function is_zero_or_positive at 0x1019bbc10>
+2021-02-04 14:53:45,736 [INFO] pycheck: retrying generation...
+2021-02-04 14:53:45,736 [INFO] pycheck: rand_int: generated=0
+2021-02-04 14:53:45,736 [INFO] pycheck: generated func args: x=0
+2021-02-04 14:53:45,736 [INFO] pycheck: result res=-1
+2021-02-04 14:53:45,736 [INFO] pycheck: beta: v=-1, t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)
+2021-02-04 14:53:45,736 [INFO] pycheck: valid_type: t=(<class 'int'>, <function is_zero_or_positive at 0x1019bbc10>)

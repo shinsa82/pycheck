@@ -1,0 +1,26 @@
+%import .python3.test
+%import .python3.NAME
+%import common.WS
+%ignore WS
+
+?start: type
+
+// type_na = type-no-arrow: types that do not contain any arrows (->).
+// required for unambiguity of the grammar.
+?type_na: py3
+        | "(" type ")"
+        | "{" NAME ":" type "|" py3 "}" -> ref_type
+
+// types that can be parsed by Python 3 grammar.
+// keep "py3" in parse tree.
+py3: test
+
+// idea borrowed from python3.lark
+typedparam: NAME ":" type_na
+          | "(" NAME ":" type_na ")"
+
+// top-level types. expresses right-associativity of "->".
+?type: type_na
+     | typedparam "->" type -> func_type
+
+// product_type:
