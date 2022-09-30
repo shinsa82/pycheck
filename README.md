@@ -1,3 +1,6 @@
+> This README is draft and has some deprecated portions.
+> See [docs/quickstart.md](./docs/quickstart.md) for the latest version.
+
 # PyCheck: Python PBRT tool as refinement type checker
 
 PyCheck is a tool for property-based random testing (PBRT) of Python programs.

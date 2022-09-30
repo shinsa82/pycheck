@@ -1,0 +1,96 @@
+// Rewrite version of reftype (aka type annotation) grammar.
+// This version avoids use of borrowed python3 grammar as much as possible.
+
+?start: type
+
+// 1. func type (arrow) has lower priority over union type. thus
+// "x:int -> int | str" is understood as "x:int -> (int | str)"
+
+// 2. arrow type is right-associative (typical in functional lang.),
+// but it is obvious in dependent functional types:
+// "x:int -> y:int -> int" is parsed as "x:int -> (y:int -> int)"
+// and cannot be parsed as "(x:int -> y:int) -> int", which is not syntactically correct.
+
+// // type_na = type-no-arrow: types that do not contain any arrows (->).
+// // required for unambiguity of the grammar.
+// ?type_na: py3
+//         | "(" type ")"
+//         | "{" NAME ":" type "|" py3 "}" -> ref_type
+
+// // top-level types. expresses right-associativity of "->".
+// ?type: type_na
+//      | typedparam "->" type -> func_type
+
+// // product_type:
+
+// here we slightly modify original definition of types from our paper:
+//
+// \tau = \nu
+//      | (x_1:\tau_1, ...) -> \tau_2 // changed to multiple arguments. 0-arg is allowed.
+// \nu  = b
+//      | list[\nu] // list type, notation similar to mypy.
+//      | { x:\nu_1 | \phi }
+//      | (x_1: \nu_1, ..., \nu_n) // n-tuple type
+// b    = int | bool | float | str | None | (char)
+//                                                  // here None (or NoneType) added.
+//                                                  // str is an alias of list[char]
+
+
+// type = \tau in my paper
+// ?type: params_plus "->" type -> func_type
+//     | "(" params ")" "->" type -> func_type
+//     | inner_type
+//     // | sum_type
+?type: params "->" type -> func_type
+     | inner_type
+
+// one or more "typedparam"s.
+// params_plus: typedparam ("," typedparam)*
+
+// zero or more "typedparam"s. parens around params is optional,
+// but is mandatory when param len = 0.
+params: "(" ")" // empty
+      | "(" typedparam ("," typedparam)* ")"
+      | typedparam ("," typedparam)*
+
+// variable name and its type
+typedparam: var ":" type
+
+var: NAME
+
+// ?sum_type: atom_type
+//          | atom_type ("|" atom_type)+
+
+// inner_type = \nu in my paper
+?inner_type: base_type
+    | "list" "[" inner_type "]" -> list_type // generic types used in python? (I forgot)
+    | "(" inner_type ")"
+    | "{" main_type "|" predicate "}" -> ref_type // introduced type-less refinement 
+    | (innertypedparam "*")+ non_prod_inner_type -> prod_type // n-ary product type (n >= 2)
+
+?non_prod_inner_type: base_type
+    | "list" "[" inner_type "]" -> list_type // generic types used in python? (I forgot)
+    | "(" inner_type ")"
+    | "{" main_type "|" predicate "}" -> ref_type // introduced type-less refinement 
+
+// variable name and its inner_type
+innertypedparam: var ":" inner_type
+
+main_type: var_decl? inner_type
+var_decl: var ":"
+
+!base_type: "int" | "bool" | "char" | "float" | none | "str" // none added, and currently include "str" here
+
+// types: type ("," type)*
+
+// overwrite none rule in python3
+!none.2: "None"
+       | "NoneType"
+
+// predicate is any callable object.
+predicate: test 
+
+%import .python3.test
+%import .python3.NAME
+%import common.WS
+%ignore WS

@@ -30,6 +30,6 @@ tag:
 	git tag -a -m"tag message" v0.4.0
 
 clean:
-	find test pycheck -name "__pycache__" | xargs rm -rf
-	find test pycheck -name ".mypy_cache" | xargs rm -rf
+	find test src/pycheck -name "__pycache__" | xargs rm -rf
+	find test src/pycheck -name ".mypy_cache" | xargs rm -rf
 	-rm dist/*

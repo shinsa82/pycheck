@@ -1,13 +1,13 @@
 """
 Module for configuration and execution context.
 """
+from dataclasses import dataclass
 from typing import NewType
-
-from attr import dataclass
 
 
 @dataclass
 class Config:
+    "class for storing PyCheck configuration."
     max_iteration: int = 100  # max number of success iterations.
     # max number of tries (including both success and fail) for avoiding infinite loop.
     max_tries: int = 10000

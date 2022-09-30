@@ -1,7 +1,9 @@
-# How to Test (on 12 Jul. 2021)
+# How to Test (on 27 Sep. 2022)
 
-Only directory `valid` contains valid tests for the latest code.
-(Tests in other directories are outdated and will be removed in future)
+## Files
+
+- [subtests](./sub_tests/) tests for components
+- [test_main.py]
 
 `pytest test/valid`
 

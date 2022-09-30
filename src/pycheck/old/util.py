@@ -8,8 +8,7 @@ from typing import Callable
 
 def func_name(func: Callable) -> str:
     """
-    Returns the name (or text representation) of the given function,
-    which is 'func.__name__' or 'str(func)'.
+    Returns the name (or text representation) of the given function, which is 'func.__name__' or 'str(func)'.
 
     Args:
         func (Callable): target function.
