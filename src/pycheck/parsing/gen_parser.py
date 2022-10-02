@@ -15,7 +15,7 @@ def gen_parser() -> Lark:
     with _env.prefixed('PYCHECK_'):
         debug: bool = _env.bool('DEBUG_PARSER', False)
         logger.info('reftype parser configuration: debug flag = %s', debug)
-
+        logger.info("loading grammar file %s...", GRAMMAR.resolve())
         # (dynamic) earley parser cannot use priorities on terminals,
         # which is used in common/python.lark.
         with open(GRAMMAR, mode='r', encoding='utf-8') as f:
@@ -27,6 +27,7 @@ def gen_parser() -> Lark:
                 ambiguity='explicit',
                 propagate_positions=True,
             )
+            logger.info("parser generated: %s", _parser)
             return _parser
 
 

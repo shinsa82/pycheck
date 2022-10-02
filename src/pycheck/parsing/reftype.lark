@@ -88,7 +88,7 @@ var_decl: var ":"
        | "NoneType"
 
 // predicate is any callable object.
-predicate: test 
+?predicate: test 
 
 %import .python3.test
 %import .python3.NAME

@@ -25,7 +25,6 @@ def add_decorated(y: int, x: int) -> int:
 # special cases: annoted functions
 
 
-@mark.xfail
 def test_func_annotated():
     "typecheck annotaed function."
     b: bool = typecheck(add_decorated)
@@ -34,16 +33,46 @@ def test_func_annotated():
 # common cases: non-annoted terms
 
 
-@mark.xfail
 def test_func_not_annotated():
     "typecheck non-annotaed function."
     b: bool = typecheck(add, '(y:int, x:int) -> int')
     assert b
 
 
-@mark.xfail
-def test_tuple_ref_not_annotated():
-    "typecheck non-annotaed function."
-    v: Tuple[int, int] = (3, 5)
-    b: bool = typecheck(v, '(x:int, {y:int | y>x})')
+def test_base_types():
+    "typecheck base."
+    v: int = 13
+    b: bool = typecheck(v, 'int')
     assert b
+
+
+def test_prod_types():
+    "typecheck product (triple)."
+    v: tuple[int, int] = (11, 13, 15)
+    b: bool = typecheck(v, 'x:int * y:int * int')
+    assert b
+
+
+def test_prod_ref_types():
+    "typecheck product type with refinement."
+    v: Tuple[int, int] = (3, 5)
+    b: bool = typecheck(v, 'x:int * {y:int | y>x}')
+    assert b
+
+
+def test_ref_only_types():
+    "typecheck refinement types."
+    v: int = 5
+    b: bool = typecheck(v, '{x:int | x>0}')
+    assert b
+
+#
+# fail cases
+#
+
+
+def test_fail_ref_only_types():
+    "typecheck refinement types."
+    v: int = -1
+    b: bool = typecheck(v, '{x:int | x>0}')
+    assert not b
