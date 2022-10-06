@@ -75,6 +75,7 @@ var: NAME
 
 // variable name and its inner_type
 innertypedparam: var ":" inner_type
+    | "(" var ":" inner_type ")"
 
 main_type: var_decl? inner_type
 var_decl: var ":"

@@ -27,11 +27,3 @@ def code_gen(value: Any, reftype: RefType) -> Code:
     logger.info("code generated: \n%s", code.text)
     return code
 
-
-def gen_gen(ast: Tree) -> Code:
-    """
-    generate a value of the specified type.
-
-    'alpha' in our paper)
-    """
-    return Code()
