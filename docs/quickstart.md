@@ -2,6 +2,15 @@
 
 Here *"reftype"* means refinement types.
 
+## Example codes
+
+See and execute [test_main.py](../test/test_main.py).
+If you want to run the specific testcase, specify its name pattern by `-k` option:
+
+```bash
+pytest test/test_main.py [-k func_5]
+```
+
 
 ## How to typecheck terms
 
@@ -19,14 +28,16 @@ result: Result = typecheck(t, T, detail=True)
 b: bool = result.well_typed
 ```
 
-Example:
+Example: currently only unary function is supported, you need to define n-ary function using a tuple:
 
 ```python
-def Max(x:int, y:int) -> int:
-    return (x if x >= y else y)
+def Max(p: tuple[int, int]) -> int:
+    return (p[0] if p[0] >= p[1] else p[1])
 
-b: bool = typecheck(Max, "(x:int) -> (y:int) -> {r:int | r >= x and r >= y}")
+b: bool = typecheck(Max, "p:(x:int * int) -> {r:int | r >= p[0] and r >= p[1]}")
 ```
+
+> Note that `x:int * int` here denotes a dependent product `(x:int) * int` and alternatively you can write it as `(x:int) * int` for readability.
 
 ## Annotation to function
 
