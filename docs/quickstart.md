@@ -5,7 +5,7 @@ Here *"reftype"* means refinement types.
 ## Example codes
 
 See and execute [test_main.py](../test/test_main.py).
-If you want to run the specific testcase, specify its name pattern by `-k` option:
+If you want to run a specific testcase, specify its name pattern by `-k` option:
 
 ```bash
 pytest test/test_main.py [-k func_5]
@@ -21,7 +21,7 @@ b: bool = typecheck(t, T)
 ```
 
 If the term is well-typed, `True` will be returned. Otherwise `False` will be returned.
-If you want the detail of the typechecking, specify the `detail` keyword option:
+If you want the detail of the type checking, specify the `detail` keyword option:
 
 ```python
 result: Result = typecheck(t, T, detail=True)
@@ -37,7 +37,7 @@ def Max(p: tuple[int, int]) -> int:
 b: bool = typecheck(Max, "p:(x:int * int) -> {r:int | r >= p[0] and r >= p[1]}")
 ```
 
-> Note that `x:int * int` here denotes a dependent product `(x:int) * int` and alternatively you can write it as `(x:int) * int` for readability.
+> Note that `x:int * int` here denotes a dependent product `(x:int) * int` and you can write it as the latter for readability.
 
 ## Annotation to function
 
