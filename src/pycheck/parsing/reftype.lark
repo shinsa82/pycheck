@@ -55,7 +55,8 @@ params: "(" ")" // empty
 
 // variable name and its type
 typedparam: var ":" type
-
+    | var ":" "(" type ")"
+    
 var: NAME
 
 // ?sum_type: atom_type

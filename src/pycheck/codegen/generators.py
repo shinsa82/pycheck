@@ -8,12 +8,13 @@ Code generator has two sub-routines.
 from logging import getLogger
 from pprint import pformat
 from textwrap import indent
-from typing import Any, TypeAlias
+from typing import Any
 
 from lark import Tree
 
 from ..parsing import reconstruct
 from .const import Code, CodeGenContext, CodeGenResult
+from .gen_helper import FuncHelper
 
 logger = getLogger(__name__)
 
@@ -319,7 +320,7 @@ def gen_typecheck_code(
 
     Flag is_delta is used to which should be returned among 'beta' and 'delta'.
     """
-    logger.info("generating code for type '%s'",
+    logger.info("generating type checking code for type '%s'",
                 reconstruct(ast))
     logger.info(context)
     logger.info("\n%s", ast.pretty())
@@ -511,6 +512,63 @@ def gen_gen_func(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     """
     generate a code to generate a value of function types.
     """
+    # populate type information
+    argtypes = []
+    for ch in type_.children[0].children:
+        if ch.data == "typedparam":  # childlen other than the last one
+            # logger.debug("var = %s", ch.children[0])
+            # logger.debug("type = %s", ch.children[1])
+            argtypes.append((str(ch.children[0].children[0]), ch.children[1]))
+    # probably the last element
+    rettype = type_.children[1]
+
+    logger.debug(pformat(argtypes))
+    logger.debug(rettype)
+
+    if len(argtypes) != 1:
+        raise NotImplementedError(
+            f"currently only unary function is supported, but n={len(argtypes)} was given")
+
+    # use new helper to generate code
+    helper = FuncHelper(context)
+
+    # header
+    helper.header(num_args=0)
+    logger.debug(helper.header_)
+
+    # comment
+    helper.comment_gen(type_)
+    logger.debug(helper.comment_)
+
+    # generated func
+    helper2 = FuncHelper(context)
+    var = argtypes[0][0]
+    helper2.header(params=[var])
+    helper2.comment("generated func def.")
+
+    # type check the arg
+    code3, context = gen_typecheck_code(..., argtypes[0][1], context)
+
+    # gen return value
+    code4, context = gen_gen(rettype, "lambda z: True", context)
+
+    helper2.body(
+        code3.text +
+        code4.text +
+        f"if rand_bool() or {code3.entry_point}({var}):\n" +
+        f"  return {code4.entry_point}()\n" +
+        f"else:\n" +
+        f"  raise PyCheckFailError"
+    )
+
+    code2 = helper2.code()
+    helper.body(code2.text +
+                f"return {code2.entry_point}")
+
+    code = helper.code()
+    logger.debug("\n%s", code.text)
+
+    return code, context
     raise NotImplementedError(
         "gen generator for function types is not implemented")
 

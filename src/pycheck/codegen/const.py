@@ -12,6 +12,10 @@ class Code:
     # name of the function that is entry point of typechecking.
     entry_point: str = None
 
+    def __post_init__(self):
+        "post initialization"
+        self.text = fix_code(self.text)
+
     def fix_code(self, options=None):
         "format the code using autopep8."
         new_text = fix_code(self.text, options=options)

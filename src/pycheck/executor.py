@@ -23,6 +23,13 @@ class PyCheckAssertError(Exception):
         self.step = step
 
 
+class PyCheckFailError(Exception):
+    "denotes a execution fail in a generated function."
+
+    def __init__(self):
+        super().__init__("Execution (intendedly) failed in a generated function")
+
+
 def execute(tc_func: Callable, term: Any, config: Config = None) -> Result:
     "iteratively execute the code and returns its result."
     if config is None:
