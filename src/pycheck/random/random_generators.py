@@ -6,4 +6,9 @@ rng: Generator = default_rng()
 
 def rand_int() -> int:
     "return a random integer."
-    return rng.integers(-1_000, 1_000, endpoint=True)
+    return rng.integers(-100, 100, endpoint=True)
+
+
+def rand_bool() -> bool:
+    "return a random boolean."
+    return rng.choice([False, True])

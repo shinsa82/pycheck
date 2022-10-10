@@ -32,6 +32,10 @@ def add_decorated(y: int, x: int) -> int:
 def max_(p: tuple[int, int]) -> int:
     return p[0] if p[0] >= p[1] else p[1]
 
+
+def list_first(L: list[int]) -> int:
+    return L[0]
+
 #
 # main tests
 #
@@ -94,6 +98,26 @@ def test_func_5():
     assert b
 
 
+def test_func_6():
+    "typecheck the function that argument type is product type and has refinement type."
+    start = datetime.now()
+    b: bool = typecheck(
+        max_, 'h:( (i:int) * { j:int | i >= j } ) -> {r:int | r == h[0]}')
+    delta = datetime.now() - start
+    print(delta.total_seconds())
+    assert b
+
+
+def test_func_list():
+    "typecheck the function with list generation."
+    start = datetime.now()
+    b: bool = typecheck(
+        list_first, 'L: {ll: list[int] | len(ll) > 0 } -> int')
+    delta = datetime.now() - start
+    print(f"time elapsed: {delta.total_seconds()}s")
+    assert b
+
+
 def test_base_types():
     "typecheck base."
     v: int = 13
@@ -134,6 +158,7 @@ def test_ref_only_types():
     v: int = 5
     b: bool = typecheck(v, '{x:int | x>0}')
     assert b
+
 
 #
 # fail cases

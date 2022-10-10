@@ -23,19 +23,24 @@ def code_func_header(func_name: str, params: list[str]):
     return f"def {func_name}({','.join(params)}):"
 
 
-def gen_header_elements(context: CodeGenContext, func_only=False) -> (
+def gen_header_elements(context: CodeGenContext, var_name="x", func_only=False) -> (
         tuple[str, str, CodeGenContext] | tuple[str, CodeGenContext]):
     "utility to created the default function header."
     entry_point = f"f{context.get_fsuf()}"
     if func_only:
         return entry_point, context
-    param = f"x{context.get_vsuf()}"
+    param = f"{var_name}{context.get_vsuf()}"
     return entry_point, param, context
 
 
 def code_func(header: str, body: str):
     "ulitity to create a function definition."
     return header + "\n" + indent(body, ' '*2)
+
+
+def comment_u(msg):
+    "generate a universal comment."
+    return f"# {msg}\n"
 
 
 def comment_tc(ast: Tree):
@@ -370,12 +375,58 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
     return Code(code_func(header, comment+body), entry_point=func_name).fix_code(), context
 
 
+def gen_inner_gen(base: Tree, pred_func, context: CodeGenContext) -> CodeGenResult:
+    "generates inner gen function used in list generation."
+    logger.debug("generating header")
+    entry_point, param, context = gen_header_elements(context, var_name="ps")
+    header = code_func_header(entry_point, [param])
+    var1 = f"x{context.get_vsuf()}"
+    gen_var1, context = gen_gen(base, "lambda z: True", context)  # TODO
+    var2 = f"x{context.get_vsuf()}"
+    body = ("if rand_bool():\n" + "  return []\n" + "return [1,2,3] # TODO\n" +
+            gen_var1.text +
+            f"{var1} = {gen_var1.entry_point}()\n" +
+            f"{var2} = {entry_point}('lambda z: True') # TODO\n" +
+            f"return [{var1}] + {var2}"
+            )
+    code = Code(code_func(header, comment_u("inner_gen")+body),
+                entry_point=entry_point).fix_code()
+    return code, context
+
+
 def gen_gen_list(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     """
     generate a code to generate a value of list types.
     """
-    raise NotImplementedError(
-        "gen generator for list types is not implemented")
+    base = type_.children[0]
+    logger.debug("element type = %s", base)
+
+    # logger.info("generating code for element type")
+    # (element_type_code, context) = gen_typecheck_code(...,
+    #                                                   type_, context, is_delta=True)
+    # logger.debug(element_type_code.text)
+
+    # logger.info("generating main code with elment type checking code")
+    # entry_point, param, context = gen_header_elements(context)
+    # body = f"return all(map({element_type_code.entry_point},{param}))"
+    # logger.info(body)
+
+    # header
+    logger.debug("generating header")
+    entry_point, context = gen_header_elements(context, func_only=True)
+    header = code_func_header(entry_point, [])
+
+    comment_ = comment_gen(type_)
+
+    logger.debug("generating inner gen")
+    inner_gen, context = gen_inner_gen(base, pred_func, context)
+    body = inner_gen.text + f"return {inner_gen.entry_point}('{pred_func}')"
+
+    code = Code(code_func(header, comment_ + body),
+                entry_point=entry_point).fix_code()
+    logger.debug(code)
+
+    return code, context
 
 
 def gen_gen_ref(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGenResult:
