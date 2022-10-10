@@ -19,7 +19,7 @@ git clone https://github.com/shinsa82/pycheck.git
 pip install [-e] pycheck
 ```
 
-You can check installation:
+You can check the version of installation
 
 ```
 $ pip list
@@ -28,9 +28,15 @@ pycheck          0.5.0
 ...
 ```
 
+and if importing would be successful:
+
 ```
 $ python
-
+Python 3.10.7 (main, Oct  5 2022, 14:33:54) [GCC 10.2.1 20210110] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import pycheck
+>>> pycheck.__version__
+'0.5.0'
 ```
 
 ## Example codes
@@ -39,6 +45,7 @@ See and execute [test_main.py](../test/test_main.py).
 If you want to run a specific testcase, specify its name pattern by `-k` option:
 
 ```bash
+pip install pytest
 pytest test/test_main.py [-k func_5]
 ```
 
