@@ -10,9 +10,9 @@ from pytest import mark, raises
 #
 
 
-def add(y: int, x: int) -> int:
+def add(p: tuple[int, int]) -> int:
     "sample undecorated function."
-    return x + y
+    return p[1] + p[0]
 
 
 def inc(x: int) -> int:
@@ -23,10 +23,10 @@ def not_ident(x: int) -> int:
     return x + 10
 
 
-@reftype('(y:int, x:int) -> int')
-def add_decorated(y: int, x: int) -> int:
+@reftype('p:(y:int * int) -> int')
+def add_decorated(p: tuple[int, int]) -> int:
     "sample decorated function."
-    return x + y
+    return p[1] + p[0]
 
 
 def max_(p: tuple[int, int]) -> int:
@@ -42,6 +42,11 @@ def higher_order_1(f: Callable[[int], int]) -> Callable[[int], int]:
     def _(y: int) -> int:
         return f(y)
     return _
+
+
+def higher_order_2(f: Callable[[int], int]) -> int:
+    'f: (z: int -> int) -> int'
+    return f(0)
 
 #
 # main tests
@@ -60,7 +65,7 @@ def test_func_types_annotated():
 
 def test_func_types():
     "typecheck non-annotaed function."
-    b: bool = typecheck(add, '(y:int, x:int) -> int')
+    b: bool = typecheck(add, 'p:(y:int * int) -> int')
     assert b
 
 
@@ -130,6 +135,16 @@ def test_func_func1():
     start = datetime.now()
     b: bool = typecheck(
         higher_order_1, 'f: (z: int -> int) -> y: int -> int')
+    delta = datetime.now() - start
+    print(f"time elapsed: {delta.total_seconds()}s")
+    assert b
+
+
+def test_func_func4():
+    "typecheck the function that has function type in its parameters."
+    start = datetime.now()
+    b: bool = typecheck(
+        higher_order_2, 'f: (z: int -> {y:int|y>z}) -> int')
     delta = datetime.now() - start
     print(f"time elapsed: {delta.total_seconds()}s")
     assert b
