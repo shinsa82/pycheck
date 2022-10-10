@@ -2,6 +2,37 @@
 
 Here *"reftype"* means refinement types.
 
+## Install 
+
+> You need to use **Python 3.10** (probably it works on 3.9, but I'm not sure).
+
+You can directory install from repository:
+
+```
+pip install git+https://github.com/shinsa82/pycheck.git
+```
+
+Or clone the repo and install it:
+
+```
+git clone https://github.com/shinsa82/pycheck.git
+pip install [-e] pycheck
+```
+
+You can check installation:
+
+```
+$ pip list
+...
+pycheck          0.5.0
+...
+```
+
+```
+$ python
+
+```
+
 ## Example codes
 
 See and execute [test_main.py](../test/test_main.py).

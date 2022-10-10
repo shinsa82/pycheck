@@ -18,9 +18,9 @@ more-itertools = "*"
 lark-parser = "*"
 environs = "*"
 humanize = "*"
+autopep8 = "*"
 
 [tool.poetry.dev-dependencies]
-autopep8 = "*"
 isort = "*"
 pytest = "*"
 mypy = "*"
