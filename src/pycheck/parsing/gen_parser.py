@@ -21,6 +21,7 @@ def gen_parser() -> Lark:
         with open(GRAMMAR, mode='r', encoding='utf-8') as f:
             _parser: Lark = Lark(
                 f,
+                start=['start', 'test'],
                 parser='earley',
                 lexer='standard',
                 debug=debug,

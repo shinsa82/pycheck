@@ -7,5 +7,5 @@ Grammar files are:
 """
 from .const import TypeType
 from .gen_parser import parser
-from .parse_impl import parse_reftype
+from .parse_impl import parse_expression, parse_reftype
 from .reconstructor import reconstruct

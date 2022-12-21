@@ -1,5 +1,5 @@
 """
-Dispatcher of code generator from reftype spec.
+Entry point of code generator from reftype spec.
 """
 from logging import getLogger
 from typing import Any
@@ -26,4 +26,3 @@ def code_gen(value: Any, reftype: RefType) -> Code:
         value, reftype.ast, CodeGenContext())
     logger.info("code generated: \n%s", code.text)
     return code
-
