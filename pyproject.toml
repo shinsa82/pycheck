@@ -19,6 +19,7 @@ lark-parser = "*"
 environs = "*"
 humanize = "*"
 autopep8 = "*"
+sympy = "^1.11.1"
 
 [tool.poetry.dev-dependencies]
 isort = "*"

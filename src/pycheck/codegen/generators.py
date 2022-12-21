@@ -1,7 +1,7 @@
 """
-Code generator from reftype spec.
+Code generator implementation from reftype spec.
 
-Code generator has two sub-routines.
+Code generator has two types of sub-routines.
 'gen_typecheck_code()' is for checking of a term with a type ('beta' in our paper),
 'gen_gen_code()' is for generating a value of the specified type ('alpha' in our paper).
 """
@@ -11,12 +11,17 @@ from textwrap import indent
 from typing import Any
 
 from lark import Tree
+from sympy import (And, GreaterThan, LessThan, S, StrictGreaterThan,
+                   StrictLessThan, simplify, srepr, symbols)
 
-from ..parsing import reconstruct
+from ..parsing import parse_expression, reconstruct
+from ..symbolic import Exp, Var, eval_refinement
+from ..symbolic.var import reduction
 from .const import Code, CodeGenContext, CodeGenResult
 from .gen_helper import FuncHelper
 
 logger = getLogger(__name__)
+aa = symbols('aa')
 
 
 def code_func_header(func_name: str, params: list[str]):
@@ -280,8 +285,8 @@ def gen_typecheck_func(
 
     # value generation
     logger.debug("generating value generator")
-    # gen_code, context = gen_gen(var_type, lambda z: True, context)
-    gen_code, context = gen_gen(var_type, "lambda z: True", context)
+    # gen_code, context = gen_gen(var_type, "lambda z: True", context)
+    gen_code, context = gen_gen(var_type, lambda z: S.true, context)
 
     body = comment + return_type_code.text + gen_code.text + \
         f"{var}={gen_code.entry_point}() # gen arg\n{x_tmp2}={param}({var})\nreturn {return_type_code.entry_point}({x_tmp2})"
@@ -364,30 +369,106 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
     """
     generate a code to generate a value of base types.
     """
+    def calc_constraint(bound, expr, symb) -> tuple[tuple[int, int], str]:
+        """
+        returns integer bound (inclusive). None means infinity.
+
+        symb is a free variable in expr.
+        """
+        a, b = bound
+
+        # TODO bound update is not complete.
+        if expr == True:  # it's correct; do not fix.
+            return (bound, 'True')
+        elif expr.func == StrictGreaterThan and expr.args[0] == symb:
+            # case of 'x > C'
+            return ((expr.args[1] + 1, b), 'True')
+        elif expr.func == GreaterThan and expr.args[0] == symb:
+            # case of 'x >= C'
+            return ((expr.args[1], b), 'True')
+        elif expr.func == StrictLessThan and expr.args[0] == symb:
+            # case of 'x < C'
+            return ((a, expr.args[1] - 1), 'True')
+        elif expr.func == StrictLessThan and expr.args[0] == symb:
+            # case of 'x <= C'
+            return ((a, expr.args[1]), 'True')
+        elif expr.func == And:
+            (b0,  _) = calc_constraint(bound, expr.args[0], symb)
+            (b1, _) = calc_constraint(b0, expr.args[1], symb)
+            return (b1, 'True')
+        else:
+            logger.warning("unsupported func: %s", expr.func)
+            return (bound, 'True')
+
+    logger.debug("--- gen_base ---")
+
     func_name, context = gen_header_elements(context, func_only=True)
     header = code_func_header(func_name, [])
     comment = comment_gen(type_)
+
     var = f"x{context.get_vsuf()}"
-    body = (f"{var} = rand_int()\n" +
-            f"b = ({pred_func})({var})\n" +
+
+    # trying new architecture
+
+    helper = FuncHelper(context)
+
+    _aa = helper.v()
+    aa = symbols(_aa)
+    logger.debug(aa)
+    expr = simplify(pred_func(aa))
+    logger.debug("%s: %s", expr, srepr(expr))
+    ((lower, upper), assume_phrase) = calc_constraint((None, None), expr, aa)
+    logger.debug(((lower, upper), assume_phrase))
+    # if expr == True:  # it's correct; do not fix.
+    #     rand_int_phrase = "rand_int()"
+    #     assume_phrase = "True"
+    # elif expr.func == StrictGreaterThan and expr.args[0] == aa:
+    #     rand_int_phrase = f"rand_int(min_={expr.args[1]+1})"
+    #     assume_phrase = "True"
+    # elif expr.func == GreaterThan and expr.args[0] == aa:
+    #     rand_int_phrase = f"rand_int(min_={expr.args[1]})"
+    #     assume_phrase = "True"
+    # elif expr.func == And:
+    #     logger.debug(expr.args[0])
+    #     logger.debug(expr.args[1])
+    # else:
+    #     logger.warning(f"unsupported func: {expr.func}")
+    min_phrase = f"min_={lower}, " if lower is not None else ""
+    max_phrase = f"max_={upper}" if upper is not None else ""
+    rand_int_phrase = f"rand_int({min_phrase}{max_phrase})"
+
+    body = (f"{var} = {rand_int_phrase}\n" +
+            f"b = {assume_phrase}\n" +
             "if not b:\n" +
             f"  raise PyCheckAssumeError(f'generated value {{{var}}} did not satisfy the assumption')\n" +
             f"return {var}")
     return Code(code_func(header, comment+body), entry_point=func_name).fix_code(), context
 
 
-def gen_inner_gen(base: Tree, pred_func, context: CodeGenContext) -> CodeGenResult:
+def gen_inner_gen(base: Tree, context: CodeGenContext) -> CodeGenResult:
     "generates inner gen function used in list generation."
     logger.debug("generating header")
     entry_point, param, context = gen_header_elements(context, var_name="ps")
     header = code_func_header(entry_point, [param])
+
+    # code to gen 'car' of the list
     var1 = f"x{context.get_vsuf()}"
-    gen_var1, context = gen_gen(base, "lambda z: True", context)  # TODO
+    gen_var1, context = gen_gen(base, lambda z: S.true, context)  # TODO
+
+    # code to gen 'cdr' of the list
     var2 = f"x{context.get_vsuf()}"
-    body = ("if rand_bool():\n" + "  return []\n" + "return [1,2,3] # TODO\n" +
+
+    body = ("if rand_bool():\n" +
+            "  # generating []\n" +
+            "  b = ps0([])\n" +
+            "  if not b:\n" +
+            "    raise PyCheckAssumeError(f'generated value [] did not satisfy the assumption')\n" +
+            "  return []\n" +
+            "# generating a::l\n" +
+            # "return [1,2,3] # TODO\n" +
             gen_var1.text +
-            f"{var1} = {gen_var1.entry_point}()\n" +
-            f"{var2} = {entry_point}('lambda z: True') # TODO\n" +
+            f"{var1} = {gen_var1.entry_point}() # gen car # TODO\n" +
+            f"{var2} = {entry_point}(lambda z: ps0([{var1}]+z)) # gen cdr\n" +
             f"return [{var1}] + {var2}"
             )
     code = Code(code_func(header, comment_u("inner_gen")+body),
@@ -420,8 +501,9 @@ def gen_gen_list(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     comment_ = comment_gen(type_)
 
     logger.debug("generating inner gen")
-    inner_gen, context = gen_inner_gen(base, pred_func, context)
-    body = inner_gen.text + f"return {inner_gen.entry_point}('{pred_func}')"
+    inner_gen, context = gen_inner_gen(base, context)
+    body = inner_gen.text + \
+        f"return {inner_gen.entry_point}({srepr(pred_func)})"
 
     code = Code(code_func(header, comment_ + body),
                 entry_point=entry_point).fix_code()
@@ -434,6 +516,7 @@ def gen_gen_ref(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGen
     """
     generate a code to generate a value of refinement types.
     """
+    logger.debug("--- gen_ref ---")
     var = str(type_.children[0].children[0].children[0].children[0])
     base_ = type_.children[0].children[1]
     predicate = type_.children[1]
@@ -441,9 +524,42 @@ def gen_gen_ref(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGen
     logger.debug("base type = %s", base_)
     logger.debug("predicate = %s", predicate)
 
+    # implementing...
+    # eval_refinement(reconstruct(predicate), var)
+
+    # symbolic computation (1)
+    def new_pred_func(x): return S(reconstruct(predicate)
+                                   ).subs(symbols(var), x) & pred_func(x)
+    # term_2 = pred_func(Exp(Var(var)))
+    # logger.debug(term_2)
+    # logger.debug(locals())
+
+    # pred_text = f"lambda {var}: ({reconstruct(predicate)} & term_2)"
+    # logger.debug("evaluating %s...", pred_text)
+    # # pred_ = eval(pred_text, globals(), {"pred_func": pred_func})
+    # pred_ = eval(pred_text, globals() | locals())
+    # logger.debug(pred_)
+    # # globals()["term_2"] = term_2
+    # # debug
+    # logger.debug(pred_(Exp(Var('x'))))
+
+    # symbolic computation (2): some ad-hoc rule on 'and'
+    # if term_ == "True":
+    #     return gen_gen(
+    #         base_,
+    #         f"lambda {var}: {reconstruct(predicate)}",
+    #         context
+    #     )
+    # else:
+    #     return gen_gen(
+    #         base_,
+    #         f"lambda {var}: {reconstruct(predicate)} and {term_}",
+    #         context
+    #     )
+
     return gen_gen(
         base_,
-        f"lambda {var}: {reconstruct(predicate)} and ({pred_func})({var})",
+        new_pred_func,
         context
     )
 
@@ -550,7 +666,7 @@ def gen_gen_func(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     code3, context = gen_typecheck_code(..., argtypes[0][1], context)
 
     # gen return value
-    code4, context = gen_gen(rettype, "lambda z: True", context)
+    code4, context = gen_gen(rettype, lambda z: "True", context)
 
     helper2.body(
         code3.text +
