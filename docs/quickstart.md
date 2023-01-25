@@ -110,9 +110,16 @@ def typecheck(term, typ=None, detail=False):
     # RefType holds the parsed representation of the reftype string.
     reftype: RefType = term.__pycheck_reftype__  or RefType(typ)
 
-    code: Code = reftype.gen_code()
+    code: Code = code_gen(reftype)
     result: Result = execute(code, config)
     return result if detail else result.well_typed
+```
+
+where `code_gen()` is defined as:
+
+```python
+    (code, _) = gen_typecheck_code(
+        value, reftype.ast, CodeGenContext())
 ```
 
 RefType class parses the given reftype string into parse tree using [Lark](https://github.com/lark-parser/lark) parser.
@@ -124,4 +131,4 @@ class RefType:
         self.parse_tree = self.parse(self.type_str)
 ```
 
-`RefType.gen_code()` generates a Python code (at the point of writing, it is string) where safety of its execution is equiavlent to well-typedness of the original term.
+`code_gen()` generates a Python code (at the point of writing, it is string) where safety of its execution is equiavlent to well-typedness of the original term.

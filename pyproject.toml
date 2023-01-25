@@ -15,17 +15,16 @@ pandas = "*"
 dask = "*"
 decorator = "*"
 more-itertools = "*"
-lark-parser = "*"
 environs = "*"
 humanize = "*"
-autopep8 = "*"
 sympy = "^1.11.1"
+lark = "^1.1.5"
 
 [tool.poetry.dev-dependencies]
+autopep8 = "*"
 isort = "*"
 pytest = "*"
 mypy = "*"
-pylint = "^2.12.2"
 
 [tool.pylint.basic]
 good-names = ["f", "g"]

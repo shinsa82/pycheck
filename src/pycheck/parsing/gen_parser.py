@@ -23,7 +23,8 @@ def gen_parser() -> Lark:
                 f,
                 start=['start', 'test'],
                 parser='earley',
-                lexer='standard',
+                lexer='auto',  # 'standard',
+                maybe_placeholders = False, # added
                 debug=debug,
                 ambiguity='explicit',
                 propagate_positions=True,
