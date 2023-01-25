@@ -10,12 +10,14 @@ logger = getLogger(__name__)
 
 
 def parse_reftype(reftype: TypeStr) -> Tree:
-    """parse given typespec string and return constructed Tree."""
+    """
+    parse given typespec string and return constructed Tree.
+    """
     return parser.parse(reftype, start='start')
 
 
 def parse_expression(exp: str) -> Tree:
     """
-    parse given expressoin string (like 'x + y') and return constructed Tree.
+    parse given expression string (like 'x + y') and return constructed Tree.
     """
     return parser.parse(exp, start='test')

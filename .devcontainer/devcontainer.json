@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/python-3
 {
-	"name": "Python 3 (pycheck dev)",
+	"name": "Pycheck dev. (v3.10)",
 	"build": {
 		"dockerfile": "Dockerfile",
 		"context": "..",
@@ -36,7 +36,8 @@
 		"ms-python.python",
 		"ms-python.vscode-pylance",
 		"mhutchie.git-graph",
-		"dirk-thomas.vscode-lark"
+		"dirk-thomas.vscode-lark",
+		"bungcip.better-toml"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
