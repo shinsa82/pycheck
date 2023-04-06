@@ -7,10 +7,22 @@ from autopep8 import fix_code
 
 @dataclass
 class Code:
-    "Code to be executed by typechecker."
+    """
+    Code to be executed by typechecker.
+
+    Code text is formatted using 'fix_code()' of autopep8.
+    'entry_point' is the name of the function that is entry point of the code.
+    It means, the code text would be as follows:
+    ```
+    def <entry_point>(...):
+        ...
+    ```
+    """
     text: str = ""
-    # name of the function that is entry point of typechecking.
     entry_point: str = None
+
+    def __str__(self):
+        return self.text
 
     def __post_init__(self):
         "post initialization"

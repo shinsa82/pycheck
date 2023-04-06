@@ -2,7 +2,11 @@
 from logging import getLogger
 from typing import Any, Callable
 
+from sympy import S
+
+from .codegen import Code
 from .config import Config
+from .random.random_generators import rand_bool, rand_int
 from .result import Result
 
 logger = getLogger(__name__)
@@ -28,6 +32,23 @@ class PyCheckFailError(Exception):
 
     def __init__(self):
         super().__init__("Execution (intendedly) failed in a generated function")
+
+
+def evaluate(code: Code) -> Callable:
+    "evaluate code text to Python function."
+    locals_ = {'rand_int': rand_int, 'rand_bool': rand_bool,
+               'PyCheckAssumeError': PyCheckAssumeError,
+               'PyCheckFailError': PyCheckFailError,
+               'S': S}
+
+    # want to avoid use of 'exec()', but I'm using it as it is simple...
+    # typechecking function is stored into locals_
+    exec(code.text, globals(), locals_)
+    logger.info("defined sub- and main functions:")
+    logger.info(locals_)
+    logger.info("entrypoint:")
+    logger.info(locals_[code.entry_point])
+    return locals_[code.entry_point]
 
 
 def execute(tc_func: Callable, term: Any, config: Config = None) -> Result:

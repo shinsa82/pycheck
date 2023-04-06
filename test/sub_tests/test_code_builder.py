@@ -1,7 +1,7 @@
 "test Code and gen_helper modules."
 from pycheck.codegen import Code
 from pycheck.codegen.const import CodeGenContext
-from pycheck.codegen.gen_helper import FuncHelper
+from pycheck.codegen.code_builder import CodeBuilder
 
 
 def test_context():
@@ -38,7 +38,7 @@ def test_post_init():
 def test_func_helper1():
     "test codegen helpers."
     context = CodeGenContext()
-    helper = FuncHelper(context)
+    helper = CodeBuilder(context)
     assert helper.context.func_suffix == 0
     assert helper.context.var_suffix == 0
     assert helper.v() == "w0"
@@ -49,41 +49,41 @@ def test_func_helper1():
 
 def test_func_helper2():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header()
     assert helper.header_ == "def f0(w0):\n"
 
 
 def test_func_helper3():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header(num_args=0)
     assert helper.header_ == "def f0():\n"
 
 
 def test_func_helper4():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header(num_args=2)
     assert helper.header_ == "def f0(w0, w1):\n"
 
 
 def test_func_helper5():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header(vname="x")
     assert helper.header_ == "def f0(x0):\n"
 
 
 def test_func_helper6():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header(fname="g")
     assert helper.header_ == "def g0(w0):\n"
 
 
 def test_func_helper7():
     "test codegen helpers."
-    helper = FuncHelper(CodeGenContext())
+    helper = CodeBuilder(CodeGenContext())
     helper.header(params=['x', 'y', 'z'])
     assert helper.header_ == "def f0(x, y, z):\n"

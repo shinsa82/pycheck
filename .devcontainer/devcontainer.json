@@ -37,7 +37,8 @@
 		"ms-python.vscode-pylance",
 		"mhutchie.git-graph",
 		"dirk-thomas.vscode-lark",
-		"bungcip.better-toml"
+		"bungcip.better-toml",
+		"ms-python.isort"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
