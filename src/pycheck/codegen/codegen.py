@@ -11,14 +11,13 @@ from textwrap import indent
 from typing import Any
 
 from lark import Tree
-from sympy import (And, GreaterThan, LessThan, S, StrictGreaterThan,
-                   StrictLessThan, simplify, srepr, symbols)
+from sympy import (And, GreaterThan, S, StrictGreaterThan, StrictLessThan,
+                   simplify, srepr, symbols)
 
-from ..parsing import parse_expression, reconstruct
-from ..symbolic import Exp, Var, eval_refinement
-from ..symbolic.var import reduction
+from ..parsing import reconstruct
+from .code_builder import CodeBuilder
 from .const import Code, CodeGenContext, CodeGenResult
-from .gen_helper import FuncHelper
+from .sympy_lib import Exist, Len
 
 logger = getLogger(__name__)
 aa = symbols('aa')
@@ -72,52 +71,55 @@ def wrap_func(name: str, vars: list[str], inner_code: Code) -> Code:
 
 
 def gen_typecheck_base(
-    value: Any,
     ast: Tree,
     context: CodeGenContext,
-    is_delta: bool = False
+    is_delta: bool = False,  # pylint: disable=unused-argument
+    **kwargs  # to ignore 'value' param
 ) -> CodeGenResult:
     "generate a code for typechecking the term with base types."
-    # raise NotImplementedError("generator for base types is not implemented")
-    func_name, param, context = gen_header_elements(context)
-    code = code_func(code_func_header(
-        func_name, [param]), comment_tc(ast) + "return True")
-    return (
-        Code(code, entry_point=func_name).fix_code(),
-        context
-    )
+    builder = CodeBuilder(context)
+    return builder.comment_tc(type_=ast).func().body("return S.true").code()
 
 
 def gen_typecheck_list(
-    value: Any,
     ast: Tree,
     context: CodeGenContext,
-    is_delta: bool = False
+    is_delta: bool = False,  # pylint: disable=unused-argument
+    **kwargs  # to ignore 'value' param # pylint: disable=unused-argument
 ) -> Code:
     "generate a code for typechecking the term with product types."
     type_ = ast.children[0]
     logger.debug("element type = %s", type_)
 
     logger.info("generating code for element type")
-    (element_type_code, context) = gen_typecheck_code(...,
-                                                      type_, context, is_delta=True)
-    logger.debug(element_type_code.text)
+    (element_type_code, context) = gen_typecheck_code(
+        ast=type_, context=context, is_delta=True
+    )
+    logger.info("generated code:\n%s", element_type_code.text)
 
-    logger.info("generating main code with elment type checking code")
-    entry_point, param, context = gen_header_elements(context)
-    body = f"return all(map({element_type_code.entry_point},{param}))"
-    logger.info(body)
+    logger.info("generating main code")
+    # entry_point, param, context = gen_header_elements(context)
+    # body = f"return all(map({element_type_code.entry_point},{param}))"
+    # logger.info(body)
 
-    generated = code_func(code_func_header(entry_point, [
-        param]), element_type_code.text + body)
-    return (Code(generated, entry_point=entry_point).fix_code(), context)
+    # generated = code_func(code_func_header(entry_point, [
+    #     param]), element_type_code.text + body)
+    # return (Code(generated, entry_point=entry_point).fix_code(), context)
+
+    builder = CodeBuilder(context)
+    return (builder
+            .comment_tc(type_=ast)
+            .func()
+            .body(element_type_code.text)
+            .body(f"return all(map({element_type_code.entry_point},{builder.params_[0]}))")
+            .code())
 
 
 def gen_typecheck_ref(
-    value: Any,
     ast: Tree,
     context: CodeGenContext,
-    is_delta: bool = False
+    is_delta: bool = False,  # pylint: disable=unused-argument
+    **kwargs  # to ignore 'value' param # pylint: disable=unused-argument
 ) -> Code:
     "generate a code for typechecking the term with refinement types."
     var = ast.children[0].children[0].children[0]
@@ -128,24 +130,72 @@ def gen_typecheck_ref(
     logger.debug("predicate = %s", predicate)
 
     logger.info("generating code for main type")
-    (main_type_code, context) = gen_typecheck_code(..., type_, context, is_delta=True)
-    logger.debug(main_type_code.text)
+    (main_type_code, context) = gen_typecheck_code(
+        ast=type_, context=context, is_delta=True)
+    logger.info("code for main type:\n%s", main_type_code.text)
 
     logger.info("generating main code with predicate")
     param = str(var.children[0])
-    entry_point = f"f{context.get_fsuf()}"
-    code_head = code_func_header(entry_point, [param])
-    comment = comment_tc(ast)
-    code_body = comment + main_type_code.text + \
-        f"return {main_type_code.entry_point}({param}) and ({reconstruct(predicate)})"
-    code = code_func(code_head, code_body)
-    logger.debug("\n%s", code)
-
-    return (Code(code, entry_point=entry_point).fix_code(), context)
+    # entry_point = f"f{context.get_fsuf()}"
+    # code_head = code_func_header(entry_point, [param])
+    # comment = comment_tc(ast)
+    # code_body = comment + main_type_code.text + \
+    #     f"return {main_type_code.entry_point}({param}) and ({reconstruct(predicate)})"
+    # code = code_func(code_head, code_body)
+    builder = CodeBuilder(context)
+    return (builder.comment_tc(type_=ast).func(params=[param]).body(main_type_code.text).
+            body(f"return {main_type_code.entry_point}({param}) and ({reconstruct(predicate)})").code())
 
 
 def gen_typecheck_prod(
-    value: Any,
+    ast: Tree,
+    context: CodeGenContext,
+    is_delta: bool = False  # pylint: disable=unused-argument
+) -> CodeGenResult:
+    "generate a code for typechecking the term with product types."
+    logger.info(ast.children)
+
+    # currently only binary tuples (= pairs) are supported.
+    assert len(ast.children) == 2
+
+    ch = ast.children
+    logger.info("var = %s", str(ch[0].children[0].children[0]))
+    logger.info("type = %s:\n%s", reconstruct(
+        ch[0].children[1]), ch[0].children[1].pretty())
+    logger.info("second = %s", ch[1].pretty())
+
+    logger.info("generating code for the first type...")
+    result0 = gen_typecheck_code(ch[0].children[1], context, is_delta=True)
+    logger.info(result0[0])
+    logger.info(result0[1])
+
+    logger.info("generating code for the second type...")
+    result1 = gen_typecheck_code(
+        ch[1], context=result0[1], is_delta=True)
+    logger.info(result1[0])
+    logger.info(result1[1])
+
+    # wrap result1 with the variable above
+    logger.info("wrapping the function above...")
+    result2 = (CodeBuilder(result1[1]).comment("wrapped by a bound variable")
+               .func(params=str(ch[0].children[0].children[0]))
+               .body(result1[0].text)
+               .body(f"return {result1[0].entry_point}")
+               .code())
+    logger.info("\n%s", result2[0].text)
+    logger.info(result2[1])
+
+    builder = CodeBuilder(context)
+    return (builder
+            .comment_tc(type_=ast)
+            .func()
+            .body(result0[0].text)
+            .body(result2[0].text)
+            .body(f"return {result0[0].entry_point}({builder.params_[0]}[0]) and {result2[0].entry_point}({builder.params_[0]}[0])({builder.params_[0]}[1])")
+            .code())
+
+
+def gen_typecheck_prod_experimental(
     ast: Tree,
     context: CodeGenContext,
     is_delta: bool = False
@@ -242,12 +292,62 @@ def call_code(f, args1, arg2):
 
 
 def gen_typecheck_func(
-        value: Any,
         ast: Tree,
         context: CodeGenContext,
         is_delta: bool = False
 ) -> CodeGenResult:
     "generate a code for typechecking the term with function types."
+    if is_delta:
+        # return identity func
+        builder = CodeBuilder(context)
+        return builder.comment_tc(type_=ast).func().body("return S.true").code()
+
+    params = ast.children[0]
+
+    if len(params.children) == 0:
+        raise NotImplementedError(
+            "currently 0-argument function (= thunk) is not supported")
+    if len(params.children) > 1:
+        raise NotImplementedError(
+            "currently more than binary function is not supported")
+
+    param = params.children[0]
+    var = str(param.children[0].children[0])
+    var_type = param.children[1]
+    return_type = ast.children[1]
+
+    logger.info(param)
+    logger.info(var)
+    logger.info("%s:\n%s", reconstruct(var_type), var_type.pretty())
+    logger.info("%s:\n%s", reconstruct(return_type), return_type.pretty())
+
+    logger.info("generating random generator...")
+    code0, context0 = gen_gen(var_type, lambda z: S.true, context)
+
+    builder = CodeBuilder(context0).comment_tc(ast).func().body(code0.text)
+    builder.body(f"{var} = {code0.entry_point}()")
+
+    code1, _ = gen_typecheck_code(return_type, context0, is_delta=False)
+    builder.body(code1.text)
+
+    v2 = builder.v()
+
+    builder.body(f"{v2} = {builder.params_[0]}({var})")
+    builder.body(f"return {code1.entry_point}({v2})")
+    return builder.code()
+
+
+def gen_typecheck_func_experimental(
+        ast: Tree,
+        context: CodeGenContext,
+        is_delta: bool = False
+) -> CodeGenResult:
+    "generate a code for typechecking the term with function types."
+    if is_delta:
+        # return identity func
+        builder = CodeBuilder(context)
+        return builder.comment_tc(type_=ast).func().body("return S.true").code()
+
     params = ast.children[0]
     return_type = ast.children[1]
 
@@ -309,29 +409,34 @@ METHOD_MAPPING = {
 
 
 def gen_typecheck_code(
-        value: Any,
         ast: Tree,
         context: CodeGenContext,
-        is_delta: bool = False
+        is_delta: bool = False,
+        **kwargs  # to ignore 'value' param # pylint: disable=unused-argument
 ) -> CodeGenResult:
     """
-    generate a code for typechecking the term with the type.
+    (Entrypoint) generate a code for typechecking the term with the type.
 
     It returns a function version of 'beta' in our paper, which receives
     the typechecking target and returns a bool.
     This also receives a context that is used to keep variable name candidates,
-    and returns updated one.
+    and returns the updated one.
     Current implementation also returns a string for function name that has been generated.
 
+    ast: AST parsed by Lark parser.
+    context: context object for generationg codes (including variable and function names).
     Flag is_delta is used to which should be returned among 'beta' and 'delta'.
     """
-    logger.info("generating type checking code for type '%s'",
+    logger.info("generating type checking code for type '%s'...",
                 reconstruct(ast))
-    logger.info(context)
+    logger.info("context = %s", context)
     logger.info("\n%s", ast.pretty())
     try:
+        # dispatched by label of the root of the parse tree
         method = METHOD_MAPPING[ast.data]
-        result: CodeGenResult = method(value, ast, context, is_delta=is_delta)
+        result: CodeGenResult = method(
+            ast=ast, context=context, is_delta=is_delta
+        )
         return result
     except KeyError as err:
         raise ValueError(
@@ -351,8 +456,9 @@ def gen_gen(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     logger.info("generating generator code for type '%s', predicate func '%s'",
                 reconstruct(type_), pred_func)
     logger.info(context)
-    logger.info("\n%s", type_.pretty())
+    logger.info("parse tree of the type =\n%s", type_.pretty())
     try:
+        # tag at the root of parse tree
         method = GEN_METHOD_MAPPING[type_.data]
 
         result: CodeGenResult = method(type_, pred_func, context)
@@ -410,7 +516,7 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
 
     # trying new architecture
 
-    helper = FuncHelper(context)
+    helper = CodeBuilder(context)
 
     _aa = helper.v()
     aa = symbols(_aa)
@@ -454,6 +560,9 @@ def gen_inner_gen(base: Tree, context: CodeGenContext) -> CodeGenResult:
     # code to gen 'car' of the list
     var1 = f"x{context.get_vsuf()}"
     gen_var1, context = gen_gen(base, lambda z: S.true, context)  # TODO
+    # experimental: newer vesion
+    gen_var1, context = gen_gen(base, lambda y: Exist(
+        "z", "delta(list[base]) z and ps0(Cons(y, z))"), context)
 
     # code to gen 'cdr' of the list
     var2 = f"x{context.get_vsuf()}"
@@ -646,7 +755,7 @@ def gen_gen_func(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
             f"currently only unary function is supported, but n={len(argtypes)} was given")
 
     # use new helper to generate code
-    helper = FuncHelper(context)
+    helper = CodeBuilder(context)
 
     # header
     helper.header(num_args=0)
@@ -657,7 +766,7 @@ def gen_gen_func(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     logger.debug(helper.comment_)
 
     # generated func
-    helper2 = FuncHelper(context)
+    helper2 = CodeBuilder(context)
     var = argtypes[0][0]
     helper2.header(params=[var])
     helper2.comment("generated func def.")
