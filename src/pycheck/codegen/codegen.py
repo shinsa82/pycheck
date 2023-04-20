@@ -11,8 +11,8 @@ from textwrap import indent
 from typing import Any
 
 from lark import Tree
-from sympy import (And, GreaterThan, S, StrictGreaterThan, StrictLessThan,
-                   simplify, srepr, symbols)
+from sympy import (And, Dummy, GreaterThan, Lambda, LessThan, S,
+                   StrictGreaterThan, StrictLessThan, simplify, srepr, symbols)
 
 from ..parsing import reconstruct
 from .code_builder import CodeBuilder
@@ -55,7 +55,7 @@ def comment_tc(ast: Tree):
 
 def comment_gen(ast: Tree):
     "generate a comment line (gen)."
-    return f"# gen a value of '{reconstruct(ast)}'\n"
+    return f"# generate a value of '{reconstruct(ast)}'\n"
 
 
 def wrap_func(name: str, vars: list[str], inner_code: Code) -> Code:
@@ -481,6 +481,7 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
 
         symb is a free variable in expr.
         """
+        logger.info("%s: %s", expr, srepr(expr))
         a, b = bound
 
         # TODO bound update is not complete.
@@ -494,8 +495,11 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
             return ((expr.args[1], b), 'True')
         elif expr.func == StrictLessThan and expr.args[0] == symb:
             # case of 'x < C'
-            return ((a, expr.args[1] - 1), 'True')
-        elif expr.func == StrictLessThan and expr.args[0] == symb:
+            return ((a, min(b, expr.args[1] - 1) if b is not None else expr.args[1] - 1), 'True')
+        elif expr.func == StrictLessThan and expr.args[1] == symb:
+            # case of 'C < x'
+            return ((max(a, expr.args[1] + 1) if a is not None else expr.args[1] + 1, b), 'True')
+        elif expr.func == LessThan and expr.args[0] == symb:
             # case of 'x <= C'
             return ((a, expr.args[1]), 'True')
         elif expr.func == And:
@@ -518,10 +522,25 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
 
     helper = CodeBuilder(context)
 
+    type_str = reconstruct(type_)
+    logger.info("base type (in str) = %s", type_str)
+    match type_str:
+        case 'int':
+            w = Dummy('w')
+            logger.info("gen_int")
+            logger.info(pred_func(w))
+            logger.info(srepr(pred_func(w)))
+            expr = simplify(pred_func(w))  # testing
+            logger.info(expr)
+        case _:
+            raise ValueError(f"unsuported base type: {type_str}")
+
     _aa = helper.v()
     aa = symbols(_aa)
     logger.debug(aa)
-    expr = simplify(pred_func(aa))
+    logger.debug(srepr(pred_func(aa)))
+    expr = simplify(pred_func(aa))  # testing
+    # expr = pred_func(aa)
     logger.debug("%s: %s", expr, srepr(expr))
     ((lower, upper), assume_phrase) = calc_constraint((None, None), expr, aa)
     logger.debug(((lower, upper), assume_phrase))
@@ -636,35 +655,19 @@ def gen_gen_ref(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGen
     # implementing...
     # eval_refinement(reconstruct(predicate), var)
 
-    # symbolic computation (1)
-    def new_pred_func(x): return S(reconstruct(predicate)
-                                   ).subs(symbols(var), x) & pred_func(x)
-    # term_2 = pred_func(Exp(Var(var)))
-    # logger.debug(term_2)
-    # logger.debug(locals())
+    # old
+    # def new_pred_func(x):
+    #     return S(reconstruct(predicate)
+    #              ).subs(symbols(var), x) & pred_func(x)
 
-    # pred_text = f"lambda {var}: ({reconstruct(predicate)} & term_2)"
-    # logger.debug("evaluating %s...", pred_text)
-    # # pred_ = eval(pred_text, globals(), {"pred_func": pred_func})
-    # pred_ = eval(pred_text, globals() | locals())
-    # logger.debug(pred_)
-    # # globals()["term_2"] = term_2
-    # # debug
-    # logger.debug(pred_(Exp(Var('x'))))
+    # new
+    builder = CodeBuilder(context)
 
-    # symbolic computation (2): some ad-hoc rule on 'and'
-    # if term_ == "True":
-    #     return gen_gen(
-    #         base_,
-    #         f"lambda {var}: {reconstruct(predicate)}",
-    #         context
-    #     )
-    # else:
-    #     return gen_gen(
-    #         base_,
-    #         f"lambda {var}: {reconstruct(predicate)} and {term_}",
-    #         context
-    #     )
+    x = symbols(builder.v())
+    logger.info(pred_func(x))
+
+    new_pred_func = Lambda(x, S(reconstruct(predicate)).subs(
+        symbols(var), x) & pred_func(x))
 
     return gen_gen(
         base_,
@@ -706,20 +709,29 @@ def gen_gen_prod(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     header = code_func_header(entry_point, [])
 
     # typecheck the second component
-    tau2_code, context = gen_typecheck_code(..., subtypes[1][1], context)
+    tau2_code, context = gen_typecheck_code(
+        ast=subtypes[1][1], context=context, is_delta=True)
+    logger.info("\n%s", tau2_code.text)
 
     var = f"x{context.get_vsuf()}"
+
     phi_2 = f"lambda {var}: ({pred_func})(({subtypes[0][0]}, {var}))"
-    logger.debug(phi_2)
+    logger.info("phi_2")
+    logger.info(phi_2)
+    logger.info(S(phi_2))
+
     var2 = f"x{context.get_vsuf()}"
-    code_exist = gen_exist(
-        var2, f"{tau2_code.entry_point}({var2}) and ({phi_2})({var2})")
+    code_exist = f"Exist({var2}, {tau2_code.entry_point}({var2}) and {var}({var2}))"
+    # code_exist = gen_exist(
+    #     var2, f"{tau2_code.entry_point}({var2}) and ({phi_2})({var2})")
     phi_1 = f"lambda {subtypes[0][0]}: {code_exist}"
-    logger.debug(phi_1)
+    logger.info("phi_1")
+    logger.info(phi_1)
+    logger.info(S(phi_1))
 
     comment = comment_gen(type_)
-    gen_tau1, context = gen_gen(subtypes[0][1], phi_1, context)
-    gen_tau2, context = gen_gen(subtypes[1][1], phi_2, context)
+    gen_tau1, context = gen_gen(subtypes[0][1], S(phi_1), context)
+    gen_tau2, context = gen_gen(subtypes[1][1], S(phi_2), context)
     body = (
         comment +
         gen_tau1.text +
