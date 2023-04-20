@@ -82,8 +82,10 @@ class List(Expr):
         return printer._print(list(self.args))
 
 
-# register to converter
-converter[list] = lambda l: List(*l)
+# Commented out: since this converter applies "all" computation within SymPy.
+# This causes unwanted convertion to List.
+# # register to converter
+# converter[list] = lambda l: List(*l)
 
 
 class Cons(ListExpr):
@@ -135,6 +137,8 @@ class Len(Expr):
 
 class Exist(Expr):
     "class to express ∃x.P(x)."
+    kind = BooleanKind
+
     def __new__(cls, var, expr):
         """
         constructor.
@@ -144,3 +148,13 @@ class Exist(Expr):
         """
         obj = Basic.__new__(cls, var, expr)
         return obj
+
+    def __and__(self, other):
+        return other
+
+    def __rand__(self, other):
+        return other
+
+    def doit(self, deep=False, **hints):
+        # TODO: implement simplification
+        return S.true

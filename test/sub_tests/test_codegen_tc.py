@@ -1,12 +1,8 @@
 "test of codegen, especially gen_typecheck()."
 from logging import getLogger
 
-from sympy import Lambda, Symbol, Tuple, true
-
 from pycheck import RefType
 from pycheck.codegen import code_gen
-from pycheck.executor import PyCheckAssumeError, PyCheckFailError
-from pycheck.random.random_generators import rand_bool, rand_int
 
 from .utils import exec_code
 
