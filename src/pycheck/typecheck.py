@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 
 def typecheck(term: Any, reftype_str: TypeStr = None, detail=False) -> bool | Result:
-    "typecheck the term against the reftype and returns its result."
+    "main entry point of PyCheck: typecheck the term against the reftype and returns its result."
     logger.info("typechecking %s: %s", term, reftype_str)
     if reftype_str:
         reftype = RefType(reftype_str)

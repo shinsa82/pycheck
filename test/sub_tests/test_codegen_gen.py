@@ -1,14 +1,16 @@
 "test of codegen, especially gen_gen()."
 from logging import getLogger
 
-from sympy import Lambda, S, Symbol, Tuple, true
+from sympy import Dummy, Lambda, S, Symbol, Tuple, true
 
 from pycheck import RefType
-from pycheck.codegen import CodeGenContext
+from pycheck.codegen import CodeGenContext, code_gen
 from pycheck.codegen.codegen import gen_gen, gen_inner_gen
 from pycheck.executor import PyCheckAssumeError, PyCheckFailError
 from pycheck.parsing import parse_reftype
 from pycheck.random.random_generators import rand_bool, rand_int
+
+from .utils import exec_gen_code, true_func
 
 logger = getLogger(__name__)
 
@@ -34,48 +36,62 @@ def exec_code(code):
 class TestBase:
     "test for base types and predicate function."
 
-    def test_psi0(self):
+    def test_base0(self):
         "generates type 'int'."
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
+        reftype = RefType('int')
+        code = code_gen(reftype, mode="gen", constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
 
-    def test_psi0a(self):
-        "generates type 'int'. other version of psi."
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
-
-        exec_code(code)
-
-    def test_psi1(self):
+    def test_base1(self):
         "simplest test"
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, S('lambda z: z > 0'), CodeGenContext())
+        reftype = RefType('int')
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), 0 < _z))
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_psi2(self):
         "simplest test"
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, S('lambda z: z >= 0'), CodeGenContext())
+        reftype = RefType("int")
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z >= 0))
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_psi3(self):
         "simplest test"
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, S('lambda z: 0 < z'), CodeGenContext())
+        reftype = RefType("int")
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z < 4))
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_psi4(self):
-        "a case that requires simplification."
-        reftype = parse_reftype("int")
-        code, _ = gen_gen(reftype, S(
-            'lambda z: (0 < z) & (3 < z)'), CodeGenContext())
+        "simplest test"
+        reftype = RefType("int")
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z <= 4))
 
-        exec_code(code)
+        exec_gen_code(code)
+
+    def test_psi5(self):
+        "a case that requires simplification."
+        reftype = RefType("int")
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,),
+                                                               (0 < _z) & (3 < _z)))
+
+        exec_gen_code(code)
+
+    def test_psi6(self):
+        "a case that requires simplification."
+        reftype = RefType("int")
+        _z = Symbol('z')
+        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,),
+                                                               (0 < _z) & (_z < 3)))
+
+        exec_gen_code(code)
 
 
 class TestRef:
@@ -83,28 +99,29 @@ class TestRef:
 
     def test_ref0(self):
         "simplest test"
-        reftype = parse_reftype("{ y:int | y>0 }")
-        code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
+        reftype = RefType("{ y:int | y>0 }")
+        code = code_gen(reftype, mode='gen', constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_ref1(self):
         "simplest test"
-        reftype = parse_reftype("{x: { y:int | y>0 } | x>2}")
-        code, _ = gen_gen(reftype, S('lambda z: S.true'), CodeGenContext())
+        reftype = RefType("{x: { y:int | y>0 } | x>2}")
+        code = code_gen(reftype, mode='gen', constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_ref_2(self):
-        "simplest test"
-        reftype = parse_reftype("{x: { y:int | y>0 } | x<5}")
-        # generates (initial) assume checking code
-        #   x0 = rand_int(); assume(x0 > 0 and x0 < 5)
-        # then fused to
-        #   x0 = rand_int(min=1, max=4)
-        code, _ = gen_gen(reftype, S('lambda z: S.true'), CodeGenContext())
+        """
+        generates (initial) assume checking code
+          x0 = rand_int(); assume(x0 > 0 and x0 < 5)
+        then fused to
+          x0 = rand_int(min=1, max=4)
+        """
+        reftype = RefType("{x: { y:int | y>0 } | x<5}")
+        code = code_gen(reftype, mode='gen', constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
 
 
 class TestProd:
@@ -113,16 +130,31 @@ class TestProd:
     def test_prod0(self):
         "simplest test"
         reftype = RefType("x:int * int")
-        code, _ = gen_gen(reftype.ast, S('lambda z: True'), CodeGenContext())
+        code = code_gen(reftype, mode='gen', constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
 
     def test_prod1(self):
         "simplest test"
         reftype = RefType("x:{w:int|w>0} * int")
-        code, _ = gen_gen(reftype.ast, S('lambda z: True'), CodeGenContext())
+        code = code_gen(reftype, mode='gen', constraint=true_func())
 
-        exec_code(code)
+        exec_gen_code(code)
+
+    def test_prod2(self):
+        "simplest test"
+        reftype = RefType("x:int * {w:int|w>x}")
+        code = code_gen(reftype, mode='gen', constraint=true_func())
+
+        exec_gen_code(code)
+
+    def test_prod3x(self):
+        "refinement on prod"
+        reftype = RefType("{ x: (y:int * int) | x[0] > x[1] }")
+        code = code_gen(reftype, mode='gen', constraint=true_func())
+
+        exec_gen_code(code)
+
 
 class TestList:
     "generating list types."

@@ -1,29 +1,25 @@
 "test of codegen, especially gen_typecheck()."
-from logging import getLogger
+from logging import basicConfig, getLogger
+
+from rich.logging import RichHandler
 
 from pycheck import RefType
 from pycheck.codegen import code_gen
 
-from .utils import exec_code
+from .utils import codegen_tc_and_exec as check
 
-# FORMAT = "%(message)s"
-# basicConfig(
-#     level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-# )
+ENABLE_LOGGER: bool = False
 
+if ENABLE_LOGGER:
+    FORMAT = "%(message)s"
+    basicConfig(
+        level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+    )
+
+# pylint:disable=invalid-name
 # pylint:disable=invalid-name
 
 logger = getLogger(__name__)
-
-# locals_ = {'rand_int': rand_int, 'rand_bool': rand_bool,
-#            'Lambda': Lambda,
-#            'Tuple': Tuple,
-#            'Symbol': Symbol,
-#            'true': true,
-#            'PyCheckAssumeError': PyCheckAssumeError,
-#            'PyCheckFailError': PyCheckFailError}
-
-# the latest tests
 
 
 class TestBase:
@@ -31,18 +27,11 @@ class TestBase:
 
     def test_base0(self):
         "typechecks type 'int'."
-        reftype = RefType("int")
-        code = code_gen(3, reftype)
-
-        exec_code(code, 3, is_typed=True)
+        check("int", 3, is_typed=True)
 
     def test_base1(self):
         "typechecks type 'bool'."
-        reftype = RefType("bool")
-        v: bool = True
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+        check("bool", True, is_typed=True)
 
 
 class TestRef:
@@ -50,222 +39,102 @@ class TestRef:
 
     def test_ref0(self):
         "typechecks refinement type."
-        reftype = RefType("{x:int | x>0}")
-        v: int = 5
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+        check("{x:int | x>0}", 5)
 
     def test_ref1x(self):
         "typechecks refinement type."
-        reftype = RefType("{x:int | x>0}")
-        v: int = -1
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=False)
+        check("{x:int | x>0}", -1, is_typed=False)
 
     def test_ref2(self):
         "typechecks nested refinement type."
-        reftype = RefType("{x: { y:int | y>0 } | x<5}")
-        v = 3
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+        check("{x: { y:int | y>0 } | x<5}", 3)
 
     def test_ref3x(self):
         "typechecks nested refinement type."
-        reftype = RefType("{x: { y:int | y>0 } | x<5}")
-        v = -1
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=False)
+        check("{x: { y:int | y>0 } | x<5}", -1, is_typed=False)
 
     def test_ref4x(self):
         "typechecks nested refinement type."
-        reftype = RefType("{x: { y:int | y>0 } | x<5}")
-        v = 6
-        code = code_gen(v, reftype)
+        check("{x: { y:int | y>0 } | x<5}", 6, is_typed=False)
 
-        exec_code(code, v, is_typed=False)
+    def test_ref5(self):
+        "typechecks nested refinement type (simplified case)."
+        check("{x: { y:int | y>0 } | x>5}", 7)
 
 
 class TestList:
     "testcases for list types."
 
+    def test_list0(self):
+        "typechecks list type."
+        check("list[int]", [2, 0, -1])
+
     def test_list1(self):
-        "typechecks list type."
-        reftype = RefType("list[int]")
-        v: list[int] = [2, 0, -1]
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
-
-    def test_list2(self):
         "typechecks list+ref type."
-        reftype = RefType("list[{x: int | x>0 }]")
-        v: list[int] = [2, 1, 1]
-        code = code_gen(v, reftype)
+        check("list[{ x: int | x>0 }]", [2, 1, 1])
 
-        exec_code(code, v, is_typed=True)
-
-    def test_list3x(self):
+    def test_list2x(self):
         "typechecks list+ref type."
-        reftype = RefType("list[{x: int | x>0 }]")
-        v: list[int] = [2, 0, -1]
-        code = code_gen(v, reftype)
+        check("list[{ x: int | x>0 }]", [2, 0, -1], is_typed=False)
 
-        exec_code(code, v, is_typed=False)
-
-    def test_list4(self):
-        "typechecks list type."
-        reftype = RefType("{ l:list[int] | len(l) > 1 }")
-        v: list[int] = [2, 0, -1]
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+    def test_list3(self):
+        "typechecks list length."
+        check("{ l:list[int] | len(l) > 1 }", [2, 0, -1],  is_typed=True)
 
 
 class TestFunc:
     "typechecks function types. see test_codegen_gen.py for further random generation."
 
-    def test_func1(self):
+    def test_func0(self):
         "typechecks function types (delta). Thus it is always typed."
-        reftype = RefType("x:int -> int")
-
         def v(x):
             return x + 1
-        code = code_gen(v, reftype, is_delta=True)
+        check("x:int -> int", v, max_iter=10)
 
-        exec_code(code, v, is_typed=True)
+    def test_func1(self):
+        "typechecks function types (beta). It generates input and check output."
+        def v(x):
+            return x + 1
+        check("x:int -> int", v, max_iter=10)
 
     def test_func2(self):
         "typechecks function types (beta). It generates input and check output."
-        reftype = RefType("x:int -> int")
-
         def v(x):
             return x + 1
-        code = code_gen(v, reftype)
+        check("x:{y:int|y>0} -> int", v, max_iter=10)
 
-        exec_code(code, v, is_typed=True)
-
-    def test_func3(self):
+    def test_func3x(self):
         "typechecks function types (beta). It generates input and check output."
-        reftype = RefType("x:{y:int|y>0} -> int")
-
         def v(x):
-            return x + 1
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+            return x**2 - 15**2
+        check("x:{y:int|y>0} -> {z:int|z>0}", v, is_typed=False, max_iter=10)
 
     def test_func4(self):
         "typechecks function types (beta). It generates input and check output."
-        reftype = RefType("x:int -> {r:int|r>x}")
-
+        # this test FAILS due to gen_base().
         def v(x):
             return x + 1
-        code = code_gen(v, reftype)
+        check("x:int -> {r:int|r>x}", v, max_iter=10)
 
-        exec_code(code, v, is_typed=True)
+    def test_func5x(self):
+        "typechecks function types (beta). It generates input and check output."
+        # this test FAILS due to gen_base().
+        def v(x):
+            return abs(x) - 1
+        check("x:int -> {r:int|r<x}", v, is_typed=False, max_iter=10)
 
 
 class TestProd:
     "typechecks product types."
-    # @mark.skipif(True, reason="not refactored yet")
 
     def test_prod1(self):
         "typechecks product type."
-        reftype = RefType("x:int * int")
-        v: int = (2, 3)
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+        check("x:int * int", (2, 3), is_typed=True)
 
     def test_prod2(self):
         "typechecks product type."
-        reftype = RefType("x:int * {y:int | y>x}")
-        v: int = (2, 3)
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=True)
+        check("x:int * {y:int | y>x}", (2, 3), is_typed=True)
 
     def test_prod3x(self):
         "typechecks product type."
-        reftype = RefType("x:int * {y:int | y>x}")
-        v: int = (5, 3)
-        code = code_gen(v, reftype)
-
-        exec_code(code, v, is_typed=False)
-
-# # older version
-
-
-# def test_psi_0a():
-#     "generates type 'int'. other version of psi."
-#     reftype = parse_reftype("int")
-#     code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_psi_1():
-#     "simplest test"
-#     reftype = parse_reftype("int")
-#     code, _ = gen_gen(reftype, lambda z: z > 0, CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_psi_2():
-#     "simplest test"
-#     reftype = parse_reftype("int")
-#     code, _ = gen_gen(reftype, lambda z: z >= 0, CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_psi_3():
-#     "simplest test"
-#     reftype = parse_reftype("int")
-#     code, _ = gen_gen(reftype, lambda z: 0 < z, CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_psi_4():
-#     "a case that requires simplification."
-#     reftype = parse_reftype("int")
-#     code, _ = gen_gen(reftype, lambda z: (0 < z) & (3 < z), CodeGenContext())
-
-#     exec_code(code)
-
-# #
-# # List types
-# #
-
-
-# def test_list_0():
-#     "simplest test"
-#     reftype = parse_reftype("list[int]")
-#     # code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
-#     code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_list_1():
-#     "simplest test"
-#     reftype = parse_reftype("{l: list[int] | len(l)>0 }")
-#     # code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
-#     code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
-
-#     exec_code(code)
-
-
-# def test_innter_gen():
-#     "test for inner generator (gen() function in the list generation)."
-#     reftype = parse_reftype("int")
-#     code, _ = gen_inner_gen(reftype, CodeGenContext())
-
-#     print(code.text)
-#     # not needed to execute
+        check("x:int * {y:int | y>x}", (5, 3), is_typed=False)

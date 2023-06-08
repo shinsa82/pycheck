@@ -318,8 +318,10 @@ def gen_typecheck_func(
 
     logger.info(param)
     logger.info(var)
-    logger.info("%s:\n%s", reconstruct(var_type), var_type.pretty())
-    logger.info("%s:\n%s", reconstruct(return_type), return_type.pretty())
+    logger.info("param type = %s:\n%s", reconstruct(
+        var_type), var_type.pretty())
+    logger.info("return type = %s:\n%s", reconstruct(
+        return_type), return_type.pretty())
 
     logger.info("generating random generator...")
     code0, context0 = gen_gen(var_type, lambda z: S.true, context)
@@ -485,7 +487,7 @@ def gen_gen_base(type_: Tree, pred_func: Any, context: CodeGenContext) -> CodeGe
         a, b = bound
 
         # TODO bound update is not complete.
-        if expr == True:  # it's correct; do not fix.
+        if expr == S.true:  # it's correct; do not fix.
             return (bound, 'True')
         elif expr.func == StrictGreaterThan and expr.args[0] == symb:
             # case of 'x > C'
@@ -711,7 +713,7 @@ def gen_gen_prod(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     # typecheck the second component
     tau2_code, context = gen_typecheck_code(
         ast=subtypes[1][1], context=context, is_delta=True)
-    logger.info("\n%s", tau2_code.text)
+    logger.info("code for tau_2\n%s", tau2_code.text)
 
     var = f"x{context.get_vsuf()}"
 
@@ -721,13 +723,13 @@ def gen_gen_prod(type_: Tree, pred_func: Any, context: CodeGenContext) -> str:
     logger.info(S(phi_2))
 
     var2 = f"x{context.get_vsuf()}"
-    code_exist = f"Exist({var2}, {tau2_code.entry_point}({var2}) and {var}({var2}))"
+    code_exist = f"Exist({var2}, ({tau2_code.entry_point}({var2})) & ({var}({var2})))"
     # code_exist = gen_exist(
     #     var2, f"{tau2_code.entry_point}({var2}) and ({phi_2})({var2})")
     phi_1 = f"lambda {subtypes[0][0]}: {code_exist}"
     logger.info("phi_1")
     logger.info(phi_1)
-    logger.info(S(phi_1))
+    logger.info(S(phi_1, locals={'Exist': Exist}))
 
     comment = comment_gen(type_)
     gen_tau1, context = gen_gen(subtypes[0][1], S(phi_1), context)
