@@ -9,6 +9,11 @@ INT_UPPER_BOUND = 100
 
 def rand_int(min_=INT_LOWER_BOUND, max_=INT_UPPER_BOUND) -> int:
     "return a random integer."
+    if min_ is None:
+        min_ = INT_LOWER_BOUND
+    if max_ is None:
+        max_ = INT_UPPER_BOUND
+
     return rng.integers(min_, max_, endpoint=True)
 
 

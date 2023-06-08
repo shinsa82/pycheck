@@ -2,6 +2,9 @@
 
 TEST_TARGET=test/valid
 
+test-codegen:
+	pytest -s ./test/sub_tests/test_codegen_tc.py -rA
+
 install:
 	poetry install
 
@@ -15,7 +18,7 @@ lint:
 
 test:
 	poetry run pytest --capture=tee-sys --log-cli-level=INFO $(TEST_TARGET)
-
+	
 test-generator:
 	poetry run pytest --show-capture=no -rA test/generator
 

@@ -13,8 +13,8 @@ logger = getLogger(__name__)
 @dataclass
 class RefType:
     "type spec dataclass."
-    type: TypeStr
-    ast: Tree = field(init=False)
+    type: TypeStr  # original type string
+    ast: Tree = field(init=False)  # Lark parse tree of `type`
 
     def __post_init__(self):
         logger.info("parsing reftype '%s'", self.type)
