@@ -10,7 +10,7 @@ from sympy.core.expr import Expr
 from sympy.core.kind import BooleanKind, Kind, NumberKind
 from sympy.core.symbol import Str
 from sympy.core.sympify import converter
-from sympy.logic.boolalg import And, Boolean, Or
+from sympy.logic.boolalg import ITE, And, Boolean, Or
 
 
 class _ListKind(Kind):
@@ -35,13 +35,21 @@ class ListSymbol(Expr):
     is_commutative = False
     is_symbol = True
     is_Symbol = True
+    is_extended_real = False
+    is_number = False
+
     kind = ListKind
+
+    binary_symbols = set()
 
     def __new__(cls, name):
         if isinstance(name, str):
             name = Str(name)
         obj = Basic.__new__(cls, name)
         return obj
+
+    def __getitem__(self, i):
+        return GetItem(self, i)
 
     def _sympystr(self, printer):
         "custom printer for str."
@@ -77,6 +85,9 @@ class List(Expr):
 
     def __len__(self):
         return len(self.args)
+
+    def __getitem__(self, i):
+        return GetItem(self, i)
 
     def _sympystr(self, printer):
         return printer._print(list(self.args))
@@ -115,7 +126,7 @@ class Cons(ListExpr):
         return self
 
 
-class IsNil(Expr):
+class IsNil(Expr, Boolean):
     "class to check if it's nil."
     kind = BooleanKind
 
@@ -234,6 +245,7 @@ class Exist(Expr, Boolean):
             return S.true
         return self
 
+
 class TupleSymbol(Expr):
     is_commutative = False
     is_symbol = True
@@ -282,5 +294,41 @@ class GetItem(Expr):
         i = sympify(i)
         if isinstance(t, Tuple):
             return t[i]
+        elif isinstance(t, List):
+            if i < len(t.args):
+                return t.args[i]
+        elif isinstance(t, Cons):
+            x = t.args[0]
+            y = t.args[1]
+            if i == 0:
+                return x
+            else:
+                return GetItem(y, i-1)
         obj = Basic.__new__(cls, t, i)
+        return obj
+
+    def _sympystr(self, printer):
+        return printer._print(self.args[0]) + "[" + printer._print(self.args[1]) + "]"
+
+
+class IsSorted(Expr, Boolean):
+    kind = BooleanKind
+
+    def __new__(cls, l):
+        l = sympify(l)
+        if isinstance(l, list):
+            return sympify(len(l) == 0)
+        elif isinstance(l, List):
+            ll = l.args
+            return S(len(ll) == 0 or all(ll[i] <= ll[i+1] for i in range(len(ll)-1)))
+        elif isinstance(l, Cons):
+            y = l.args[0]
+            z = l.args[1]
+            return IsNil(z) | ((Len(z)>=1) & (y < z[0]) & IsSorted(z))
+            # return ITE(
+            #     IsNil(z),
+            #     S.true,
+            #     (y < z[0]) & IsSorted(z)
+            # )
+        obj = Basic.__new__(cls, l)
         return obj

@@ -17,6 +17,9 @@ def rand_int(min_=INT_LOWER_BOUND, max_=INT_UPPER_BOUND) -> int:
     return rng.integers(min_, max_, endpoint=True)
 
 
-def rand_bool() -> bool:
-    "return a random boolean."
-    return rng.choice([False, True])
+def rand_bool(p=0.5) -> bool:
+    """
+    return a random boolean.
+    optional p is a prob. of True.
+    """
+    return rng.choice([False, True], p=[1.0 - p, p])

@@ -5,12 +5,13 @@ from sympy import Dummy, Lambda, S, Symbol, Tuple, true
 
 from pycheck import RefType
 from pycheck.codegen import CodeGenContext, code_gen
-from pycheck.codegen.codegen import gen_gen, gen_inner_gen
+# from pycheck.codegen.codegen import gen_gen, gen_inner_gen
 from pycheck.executor import PyCheckAssumeError, PyCheckFailError
 from pycheck.parsing import parse_reftype
 from pycheck.random.random_generators import rand_bool, rand_int
 
-from .utils import exec_gen_code, true_func
+from .utils import codegen_gen_and_exec as check
+from .utils import true_func
 
 logger = getLogger(__name__)
 
@@ -38,60 +39,49 @@ class TestBase:
 
     def test_base0(self):
         "generates type 'int'."
-        reftype = RefType('int')
-        code = code_gen(reftype, mode="gen", constraint=true_func())
-
-        exec_gen_code(code)
+        check('int')
 
     def test_base1(self):
         "simplest test"
-        reftype = RefType('int')
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), 0 < _z))
+        check('int', constraint=Lambda((_z,), 0 < _z))
 
-        exec_gen_code(code)
-
-    def test_psi2(self):
+    def test_base2(self):
         "simplest test"
-        reftype = RefType("int")
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z >= 0))
+        check('int', constraint=Lambda((_z,), _z >= 0))
 
-        exec_gen_code(code)
-
-    def test_psi3(self):
+    def test_base3(self):
         "simplest test"
-        reftype = RefType("int")
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z < 4))
+        check("int", constraint=Lambda((_z,), _z < 4))
 
-        exec_gen_code(code)
-
-    def test_psi4(self):
+    def test_base4(self):
         "simplest test"
-        reftype = RefType("int")
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,), _z <= 4))
+        check("int", constraint=Lambda((_z,), _z <= 4))
 
-        exec_gen_code(code)
-
-    def test_psi5(self):
+    def test_base5(self):
         "a case that requires simplification."
-        reftype = RefType("int")
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,),
-                                                               (0 < _z) & (3 < _z)))
+        check("int", constraint=Lambda((_z,),
+                                       (0 < _z) & (3 < _z)))
 
-        exec_gen_code(code)
-
-    def test_psi6(self):
+    def test_base6(self):
         "a case that requires simplification."
-        reftype = RefType("int")
         _z = Symbol('z')
-        code = code_gen(reftype, mode="gen", constraint=Lambda((_z,),
-                                                               (0 < _z) & (_z < 3)))
+        check("int", constraint=Lambda((_z,),
+                                       (0 < _z) & (_z < 3)))
 
-        exec_gen_code(code)
+    def test_base7(self):
+        "our tool works on polynomial constraints if it can be solved."
+        _z = Symbol('z')
+        check("int", constraint=Lambda((_z,), 2 * _z + 1 <= 4))
+
+    def test_base8(self):
+        "if it cannot be solved by SymPy, trial and error will be done."
+        _z = Symbol('z')
+        check("int", constraint=Lambda((_z,), _z ** 2 <= 9))
 
 
 class TestRef:
@@ -100,16 +90,12 @@ class TestRef:
     def test_ref0(self):
         "simplest test"
         reftype = RefType("{ y:int | y>0 }")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
-
-        exec_gen_code(code)
+        check("{ y:int | y>0 }")
 
     def test_ref1(self):
         "simplest test"
         reftype = RefType("{x: { y:int | y>0 } | x>2}")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
-
-        exec_gen_code(code)
+        check("{x: { y:int | y>0 } | x>2}")
 
     def test_ref_2(self):
         """
@@ -119,9 +105,7 @@ class TestRef:
           x0 = rand_int(min=1, max=4)
         """
         reftype = RefType("{x: { y:int | y>0 } | x<5}")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
-
-        exec_gen_code(code)
+        check("{x: { y:int | y>0 } | x<5}")
 
 
 class TestProd:
@@ -129,31 +113,32 @@ class TestProd:
 
     def test_prod0(self):
         "simplest test"
-        reftype = RefType("x:int * int")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
-
-        exec_gen_code(code)
+        check("x:int * int")
 
     def test_prod1(self):
         "simplest test"
-        reftype = RefType("x:{w:int|w>0} * int")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
-
-        exec_gen_code(code)
+        check("x:{w:int|w>0} * int")
 
     def test_prod2(self):
         "simplest test"
-        reftype = RefType("x:int * {w:int|w>x}")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
+        check("x:int * {w:int|w>x}")
 
-        exec_gen_code(code)
-
-    def test_prod3x(self):
+    def test_prod3(self):
         "refinement on prod"
-        reftype = RefType("{ x: (y:int * int) | x[0] > x[1] }")
-        code = code_gen(reftype, mode='gen', constraint=true_func())
+        check("{ x: (y:int * int) | x[0] > x[1] }")
 
-        exec_gen_code(code)
+
+class TestFunc:
+    "generating function types."
+
+    def test_func0(self):
+        check("x:int -> int", func=True)
+
+    def test_func1(self):
+        check("x:int -> { r:int | r > 20 }", func=True)
+
+    def test_func2(self):
+        check("x:int -> { r:int | r > x }", func=True)
 
 
 class TestList:
@@ -161,24 +146,28 @@ class TestList:
 
     def test_list0(self):
         "simplest test"
-        reftype = parse_reftype("list[int]")
-        # code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
-        code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
-
-        exec_code(code)
+        check("list[int]")
 
     def test_list1(self):
         "simplest test"
-        reftype = parse_reftype("{l: list[int] | len(l)>0 }")
-        # code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
-        code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
+        check("list[{x:int|x>-5}]")
 
-        exec_code(code)
+    def test_list2(self):
+        "sorted list"
+        check("{ l:list[int] | is_sorted(l) }", max_iter=1)
 
-    def test_innter_gen(self):
-        "test for inner generator (gen() function in the list generation)."
-        reftype = parse_reftype("int")
-        code, _ = gen_inner_gen(reftype, CodeGenContext())
+    # def test_list2(self):
+    #     "simplest test"
+    #     reftype = parse_reftype("{l: list[int] | len(l)>0 }")
+    #     # code, _ = gen_gen(reftype, lambda z: S.true, CodeGenContext())
+    #     code, _ = gen_gen(reftype, S('lambda z: True'), CodeGenContext())
 
-        print(code.text)
-        # not needed to execute
+    #     exec_code(code)
+
+    # def test_innter_gen(self):
+    #     "test for inner generator (gen() function in the list generation)."
+    #     reftype = parse_reftype("int")
+    #     code, _ = gen_inner_gen(reftype, CodeGenContext())
+
+    #     print(code.text)
+    #     # not needed to execute

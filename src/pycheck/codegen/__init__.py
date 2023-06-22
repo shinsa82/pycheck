@@ -7,7 +7,7 @@ from typing import Any
 from sympy import srepr
 
 from ..reftype import RefType
-from .codegen import gen_gen, gen_typecheck_code
+# from .codegen import gen_gen, gen_typecheck_code
 from .codegen_new import CodeGen
 from .const import Code, CodeGenContext
 
