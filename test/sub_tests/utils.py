@@ -4,8 +4,9 @@ from rich.markdown import Markdown
 from rich.markup import escape
 from sympy import Dummy, Lambda, S, srepr
 
-from pycheck import Config, RefType, TypeStr, code_gen
+from pycheck import Config, PyCheckAssumeError, RefType, TypeStr, code_gen
 from pycheck.executor import evaluate, execute
+from pycheck.random import rand_int
 
 # pylint:disable=invalid-name
 
@@ -60,32 +61,73 @@ def codegen_tc_and_exec(typ: TypeStr, val, is_typed: bool = True, max_iter=1):
         assert is_typed
 
 
-def exec_code_new(code, val, is_typed, max_iter=1):
-    "subroutine for test, for new code generator."
+def codegen_gen_and_exec(typ: TypeStr, constraint=None, max_iter=10, func=False):
+    """
+    (2023/06 latest) Subroutine for test that generates a generator code for the given type
+    and execute it.
+    If func is True, generation will be done once and argument are generated iteratively instead. 
+    """
+    print(f"type = {escape(typ)}")
+    reftype = RefType(typ)
+    if constraint is None:
+        constraint = true_func()
+    print(f"constraint = {constraint}")
 
-    # render code block using rich Markdown
+    code = code_gen(reftype=reftype, mode="gen", constraint=constraint)
     print("code:")
     print(code)
-    # print("code (srepr):")
-    # print(srepr(code))
 
-    for _ in range(max_iter):
-        # execute typechecking once
-        res = code(val)
-        print(res)
-        assert res == is_typed
+    if func:
+        f = code()
+        print(f"function generated = {f}")
+
+        print(f"\niterating {max_iter} times:")
+        for _ in range(max_iter):
+            arg = rand_int()
+            res = f(arg)  # TODO: respect arg type
+            print(f"{arg} -> {res}")
+    else:
+        print(f"\ngenerating {max_iter} times:")
+
+        iter = 0
+        # execute generation by the specified times
+        while True:
+            try:
+                res = code()
+                print(res)
+                iter += 1
+                if iter == max_iter:
+                    return
+            except PyCheckAssumeError:
+                print("[yellow]Assume failed[yellow]")
 
 
-def exec_gen_code(code, max_iter=10):
-    "subroutine for test, for new code generator."
+# def exec_code_new(code, val, is_typed, max_iter=1):
+#     "subroutine for test, for new code generator."
 
-    # render code block using rich Markdown
-    print("code:")
-    print(code)
-    # print("code (srepr):")
-    # print(srepr(code))
+#     # render code block using rich Markdown
+#     print("code:")
+#     print(code)
+#     # print("code (srepr):")
+#     # print(srepr(code))
 
-    # execute typechecking only once
-    for _ in range(max_iter):
-        res = code()
-        print(res)
+#     for _ in range(max_iter):
+#         # execute typechecking once
+#         res = code(val)
+#         print(res)
+#         assert res == is_typed
+
+
+# def exec_gen_code(code, max_iter=10):
+#     "subroutine for test, for new code generator."
+
+#     # render code block using rich Markdown
+#     print("code:")
+#     print(code)
+#     # print("code (srepr):")
+#     # print(srepr(code))
+
+#     # execute typechecking only once
+#     for _ in range(max_iter):
+#         res = code()
+#         print(res)

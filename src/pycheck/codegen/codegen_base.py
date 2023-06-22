@@ -4,12 +4,12 @@ from pprint import pformat
 from typing import Callable
 
 from lark import Tree
+from sympy import Dummy, Lambda, S
 
 from ..parsing import reconstruct
-from .const import Code, CodeGenContext, CodeGenResult
+from .const import Code, CodeGenContext, CodeGenResult, true_func
 
 logger = getLogger(__name__)
-
 
 class CodeGenBase:
     """
@@ -54,10 +54,12 @@ class CodeGenBase:
         self,
         ast: Tree,
         context: CodeGenContext,
-        constraint: Callable,
+        constraint: Callable = None,
         **kwargs,  # to processing options # pylint: disable=unused-argument
     ):
         "codegen entrypoint for typechecking code."
+        if constraint is None:
+            constraint = true_func()
         logger.info("+ generating value generation code for type '%s'...",
                     reconstruct(ast))
         logger.info("context = %s", context)

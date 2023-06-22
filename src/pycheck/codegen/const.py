@@ -3,6 +3,12 @@ from dataclasses import dataclass, replace
 from typing import TypeAlias
 
 from autopep8 import fix_code
+from sympy import Dummy, Lambda, S
+
+
+def true_func():
+    "get new True constant function, 'lambda x: true', with a fresh variable."
+    return Lambda((Dummy('x'),), S.true)
 
 
 @dataclass
