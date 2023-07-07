@@ -7,9 +7,11 @@ from lark import Tree
 from sympy import Dummy, Lambda, S
 
 from ..parsing import reconstruct
+from ..types import PycheckType
 from .const import Code, CodeGenContext, CodeGenResult, true_func
 
 logger = getLogger(__name__)
+
 
 class CodeGenBase:
     """
@@ -28,6 +30,7 @@ class CodeGenBase:
     def gen(
         self,
         ast: Tree,
+        type_obj: PycheckType,
         context: CodeGenContext,
         is_delta: bool = False,
         **kwargs,  # to processing options # pylint: disable=unused-argument

@@ -7,6 +7,7 @@ from sympy import Dummy, Lambda, S, srepr
 from pycheck import Config, PyCheckAssumeError, RefType, TypeStr, code_gen
 from pycheck.executor import evaluate, execute
 from pycheck.random import rand_int
+from pycheck.codegen.sympy_lib import List
 
 # pylint:disable=invalid-name
 
@@ -14,23 +15,6 @@ from pycheck.random import rand_int
 def true_func():
     "get new True constant function, 'lambda x: true', with a fresh variable."
     return Lambda((Dummy('x'),), S.true)
-
-
-# def exec_code(code, val, is_typed):
-#     "subroutine for test."
-#     # locals_ = {}
-
-#     # render code block using rich Markdown
-#     md = Markdown("```python\n" + code.text + "```")
-#     print("code:")
-#     print(md)
-
-#     f = evaluate(code)
-#     # execute typechecking only once
-#     res = execute(f, term=val, config=Config(max_iter=1))
-#     print(res)
-
-#     assert res.well_typed == is_typed
 
 
 def codegen_tc_and_exec(typ: TypeStr, val, is_typed: bool = True, max_iter=1):
@@ -44,6 +28,9 @@ def codegen_tc_and_exec(typ: TypeStr, val, is_typed: bool = True, max_iter=1):
     code = code_gen(reftype=reftype)
     print("code:")
     print(code)
+
+    if isinstance(val, list):
+        val = List(*val)
 
     print(f"\niterating {max_iter} times:")
 
@@ -61,14 +48,15 @@ def codegen_tc_and_exec(typ: TypeStr, val, is_typed: bool = True, max_iter=1):
         assert is_typed
 
 
-def codegen_gen_and_exec(typ: TypeStr, constraint=None, max_iter=10, func=False):
+def codegen_gen_and_exec(typ: TypeStr, constraint=None, custom_env=None, custom_tc=None, max_iter=20, func=False, strict=False):
     """
     (2023/06 latest) Subroutine for test that generates a generator code for the given type
     and execute it.
     If func is True, generation will be done once and argument are generated iteratively instead. 
+    If custom_tc is a callable, this will be used to type check generated values.
     """
     print(f"type = {escape(typ)}")
-    reftype = RefType(typ)
+    reftype = RefType(typ, strict=False)
     if constraint is None:
         constraint = true_func()
     print(f"constraint = {constraint}")
@@ -76,6 +64,11 @@ def codegen_gen_and_exec(typ: TypeStr, constraint=None, max_iter=10, func=False)
     code = code_gen(reftype=reftype, mode="gen", constraint=constraint)
     print("code:")
     print(code)
+
+    if custom_tc:
+        check_code = custom_tc
+    else:
+        check_code = code_gen(reftype=reftype, is_delta=False)
 
     if func:
         f = code()
@@ -90,44 +83,33 @@ def codegen_gen_and_exec(typ: TypeStr, constraint=None, max_iter=10, func=False)
         print(f"\ngenerating {max_iter} times:")
 
         iter = 0
+        if custom_env:
+            constraint = constraint.subs(custom_env)
+            print(f"substituted constraint = {constraint}")
+
         # execute generation by the specified times
         while True:
             try:
-                res = code()
-                print(res)
+                if custom_env:
+                    res = code(custom_env)()
+                    check_code = check_code.subs(custom_env)
+                else:
+                    res = code()()  # generate one value
+
+                if isinstance(res, list):
+                    res = List(*res)
+
+                # typecheck generated value
+                is_typed = check_code(res) and constraint(res)
+                # is_typed = constraint(res) # workaround
+                if is_typed:
+                    print(f"{res}  -  [green](maybe) well-typed.[/]")
+                else:
+                    print(f"{res}  -  [red](must be) ill-typed.[/]")
+                assert is_typed
+
                 iter += 1
                 if iter == max_iter:
                     return
             except PyCheckAssumeError:
                 print("[yellow]Assume failed[yellow]")
-
-
-# def exec_code_new(code, val, is_typed, max_iter=1):
-#     "subroutine for test, for new code generator."
-
-#     # render code block using rich Markdown
-#     print("code:")
-#     print(code)
-#     # print("code (srepr):")
-#     # print(srepr(code))
-
-#     for _ in range(max_iter):
-#         # execute typechecking once
-#         res = code(val)
-#         print(res)
-#         assert res == is_typed
-
-
-# def exec_gen_code(code, max_iter=10):
-#     "subroutine for test, for new code generator."
-
-#     # render code block using rich Markdown
-#     print("code:")
-#     print(code)
-#     # print("code (srepr):")
-#     # print(srepr(code))
-
-#     # execute typechecking only once
-#     for _ in range(max_iter):
-#         res = code()
-#         print(res)
