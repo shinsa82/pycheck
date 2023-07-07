@@ -3,9 +3,9 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from lark import Token, Tree
-from sympy import Basic, S
+from sympy import Basic, S, Symbol
 
-from ..codegen.sympy_lib import Len
+from ..codegen.sympy_lib import IsSorted, Len, TupleSymbol
 from ..parsing import TypeType, reconstruct
 
 
@@ -79,46 +79,50 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
                 assert ch.data == 'none'
                 return BaseType(type=ch.children[0].value, free_variables=free_variables)
         case TypeType.ProductType.value:
-            if strict:
-                if len(ast.children) != 2:
-                    raise NotImplementedError(
-                        f"successfully parsed but the non-binary product is not supported yet")
-                first = ast.children[0]
-                first_var = first.children[0].children[0].value
-                first_type = first.children[1]
-                second_type = ast.children[1]
+            if strict and len(ast.children) != 2:
+                raise NotImplementedError(
+                    f"successfully parsed but the non-binary product is not supported yet")
+            first = ast.children[0]
+            first_var = first.children[0].children[0].value
+            first_type = first.children[1]
+            second_type = ast.children[1]
 
-                return ProdType(
-                    first_var=first_var,
-                    first_type=get_type(
-                        first_type, free_variables=free_variables),
-                    second_type=get_type(
-                        second_type, free_variables=free_variables + [first_var]),
-                    free_variables=free_variables,
-                )
-            else:
-                raise Exception("not implemented yet")
+            return ProdType(
+                first_var=first_var,
+                first_type=get_type(
+                    first_type, free_variables=free_variables),
+                second_type=get_type(
+                    second_type, free_variables=free_variables + [first_var]),
+                free_variables=free_variables,
+            )
         case TypeType.RefinementType.value:
+            _locals = {'len': Len, 'is_sorted': IsSorted}
+
             main = ast.children[0]
             if strict and len(main.children) < 2:
                 raise NotImplementedError(
                     f"successfully parsed but the rack of base variable is not supported yet")
             first_var = main.children[0].children[0].children[0].value
+
             first_type = main.children[1]
+            base_type = get_type(first_type, free_variables=free_variables)
+            if isinstance(base_type, ProdType):
+                _locals[first_var] = TupleSymbol(first_var)
+
             predicate: Basic = S(reconstruct(
-                ast.children[1]), locals={'len': Len})
+                ast.children[1]), locals=_locals)
             pred_free_var = free_variables + [first_var]
 
             # assertion of free variables in predicate
             _tmp = set(pred_free_var)  # TODO: avoid name duplication
             for symb in predicate.free_symbols:
-                if symb.name not in _tmp:
+                if strict and symb.name not in _tmp:
                     raise ValueError(
                         f"free variable scope is invalid. '{symb.name}' should not appear here")
 
             return RefinementType(
                 base_var=first_var,
-                base_type=get_type(first_type, free_variables=free_variables),
+                base_type=base_type,
                 predicate=predicate,
                 predicate_free_variables=pred_free_var,
                 free_variables=free_variables,

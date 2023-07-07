@@ -8,10 +8,12 @@ from sympy import srepr
 
 from ..reftype import RefType
 # from .codegen import gen_gen, gen_typecheck_code
-from .codegen_new import CodeGen
+from .codegen_new import CodeGen, setup
 from .const import Code, CodeGenContext
 
 logger = getLogger(__name__)
+
+setup()
 
 
 def code_gen(reftype: RefType, mode="typecheck", is_delta=False, constraint=None) -> Code:
@@ -24,17 +26,23 @@ def code_gen(reftype: RefType, mode="typecheck", is_delta=False, constraint=None
     Generated codes will be valid Python programs,
       assuming that definitions for random generator rand_<T> would be provided.
     """
-    logger.info("generating type checking code...")
+    logger.info("generating type checking/generator code...")
     logger.info(
         "  Note: generated code assumes simply-typedness of the target term.")
-    generator = CodeGen()
+    # generator = CodeGen()
     if mode == "typecheck":
-        (code, _) = generator.gen(
-            ast=reftype.ast, context=CodeGenContext(), is_delta=is_delta)
-    else:  # assume mode == "gen"
-        (code, _) = generator.gen_gen(
-            ast=reftype.ast, context=CodeGenContext(), constraint=constraint)
-    # logger.info("code generated: \n%s", code.text)
+        # (code, _) = generator.gen(
+        #     ast=reftype.ast, context=CodeGenContext(), is_delta=is_delta)
+        (code, _) = reftype.type_obj.gen(
+            context=CodeGenContext(),
+            is_delta=is_delta
+        )
+    else:
+        assert mode == "gen"
+        (code, _) = reftype.type_obj.gen_gen(
+            context=CodeGenContext(),
+            constraint=constraint)
+
     logger.info("code generated: \n%s", code)
     logger.info("code generated (srepr): \n%s", srepr(code))
     return code
