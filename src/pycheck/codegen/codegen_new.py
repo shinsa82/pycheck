@@ -126,15 +126,13 @@ def tc_func(
     logger.info("param type = %s", self.param_type)
     logger.info("return type = %s", self.return_type)
 
-    # _f = Function(var)
-
     gen_code, context = self.param_type.gen_gen(
         context=context, constraint=Lambda((Dummy('x'),), S.true))
 
     tc_code, context = self.return_type.gen(context=context, is_delta=False)
 
     def ret(f):
-        v = gen_code()
+        v = gen_code(env=None)()
         logger.info("v = %s", v)
         r = f(v)
         logger.info("r = %s", r)
@@ -380,6 +378,28 @@ def gen_func(
 
 
 USE_EXIST = True
+
+
+def gen_inner(typ, constraint):
+    """
+    'gen' function that is used within gen_list.
+
+    Here typ is a ListType.
+    """
+    def _():
+        logger.info("* gen_inner")
+        logger.info(f"type = %s", typ)
+        logger.info(f"constraint = %s", constraint)
+
+        if rand_bool(p=0.25):
+            logger.info("nil branch selected")
+            if constraint(List()) != S.true:
+                raise PyCheckAssumeError(
+                    f'generated value {[]} did not satisfy the assumption {constraint}')
+            return []
+        else:
+            raise NotImplementedError("not implemented yet")
+    return _
 
 
 def gen_list(
