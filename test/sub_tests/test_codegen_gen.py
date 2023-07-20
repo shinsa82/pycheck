@@ -1,9 +1,13 @@
 "test of codegen, especially gen_gen()."
 from logging import getLogger
 
+from rich import print
+from rich.markup import escape
 from sympy import Dummy, Lambda, S, Symbol, Tuple, true
 
 from pycheck import RefType
+from pycheck.codegen.codegen_new import gen_inner
+from pycheck.codegen.sympy_lib import IsSorted, ListSymbol
 from pycheck.executor import PyCheckAssumeError, PyCheckFailError
 from pycheck.random.random_generators import rand_bool, rand_int
 
@@ -188,3 +192,23 @@ class TestList:
 
     #     print(code.text)
     #     # not needed to execute
+
+
+class TestGenInner:
+    "test for the inner method of gen_list."
+
+    def _check(self, typ, constraint):
+        reftype = RefType(typ, strict=False)
+
+        print(f"type = {escape(typ)}")
+        print(f"type ast = {reftype.type_obj}")
+        print(f"constraint = {constraint}")
+
+    def test_positive(self):
+        pass
+
+    def test_issorted(self):
+        typ = "list[int]"
+        l = ListSymbol('l')
+        constraint = Lambda((l,), IsSorted(l))
+        self._check(typ, constraint)

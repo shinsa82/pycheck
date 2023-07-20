@@ -139,6 +139,14 @@ class TestFunc:
             return abs(x) - 1
         check("x:int -> {r:int|r<x}", v, is_typed=False, max_iter=30)
 
+    def test_func6(self):
+        "typechecks function types (beta). It generates input and check output."
+        # this test FAILS due to gen_base().
+        def v(x):
+            def vv(y):
+                return x + y + 1
+            return vv
+        check("x:int -> y:int -> {r:int|r>x+y}", v, max_iter=30)
 
 class TestProd:
     "typechecks product types."
