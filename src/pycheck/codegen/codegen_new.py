@@ -379,6 +379,9 @@ def gen_func(
     return f, context
 
 
+USE_EXIST = True
+
+
 def gen_list(
     self: ListType,
     context: CodeGenContext,
@@ -401,6 +404,7 @@ def gen_list(
         def f(env=None):
             if env is None:
                 env = {}
+
             def _():
                 context = CodeGenContext()
                 if rand_bool(p=0.25):
@@ -411,13 +415,21 @@ def gen_list(
                     return []
                 else:
                     logger.info("** cons branch")
+                    y_ = ListSymbol(f'y{idx}')
                     z_ = ListSymbol(f'z{idx}')
-                    logger.info(z_)
+                    z_tc_code, context = self.base_type.gen(
+                        context=context, is_delta=True)
+                    logger.info(f"base type TC code = {z_tc_code}")
+                    if USE_EXIST:
+                        _constraint = Lambda((y_,), Exist(
+                            z_, z_tc_code(z_) & constraint(Cons(y_, z_)).subs(env)))
+                    else:
+                        _constraint = Lambda((y_,), S.true)
                     y_gen, context = self.base_type.gen_gen(
-                        constraint=true_func(), context=context)  # TODO
+                        constraint=_constraint, context=context)  # TODO
                     y = y_gen(env)()
                     z = gen(Lambda((z_,), constr(Cons(y, z_))),
-                            idx+1)(env | {z_: y})()
+                            idx+1)(env)()
                     return [y] + z
             return _
         return f

@@ -203,7 +203,7 @@ class Exist(Expr, Boolean):
         """
         constructor.
 
-        Here `var` is a bound variable, and
+        Here `var` is a bound variable (not tuple), and
         `expr` is a SymPy expression that may contain the `var`.
         """
         obj = Expr.__new__(cls, sympify(var), sympify(expr))
