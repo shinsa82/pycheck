@@ -14,11 +14,11 @@
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
+				"ms-python.isort",
 				"njpwerner.autodocstring",
 				"mhutchie.git-graph",
 				"dirk-thomas.vscode-lark",
-				"bungcip.better-toml",
-				"ms-python.isort"
+				"bungcip.better-toml"
 			]
 		}
 	}
