@@ -6,5 +6,7 @@ from pycheck.codegen.codegen_new import gen_inner
 from pycheck.codegen.sympy_lib import IsSorted, ListSymbol
 
 l = ListSymbol('l')
-ff = gen_inner(RefType("list[int]").type_obj, Lambda(
+gen = gen_inner(RefType("list[int]").type_obj, Lambda(
     (l,), IsSorted(l)), context=CodeGenContext())
+
+# gen()

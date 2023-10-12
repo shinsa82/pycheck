@@ -14,12 +14,12 @@ from .util import perf_ms
 logger = getLogger(__name__)
 
 
-def typecheck(term: Any, reftype_str: TypeStr = None, detail=False, config=None) -> bool | Result:
+def typecheck(term: Any, type: TypeStr = None, detail=False, config=None) -> bool | Result:
     "main entry point of PyCheck: typecheck the term against the reftype and returns its result."
     s0 = perf_counter()
     s1 = perf_counter()
-    if reftype_str:
-        reftype = RefType(reftype_str)
+    if type:
+        reftype = RefType(type)
     else:
         # TODO: need to check if the term is callable or not?
         reftype = get_reftype(term)

@@ -1,5 +1,5 @@
 {
-	"name": "poetry3-poetry-pyenv",
+	"name": "PyCheck (python 3.12 @ bookwarm)",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -15,11 +15,22 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.isort",
+				"kevinrose.vsc-python-indent",
 				"njpwerner.autodocstring",
 				"dirk-thomas.vscode-lark",
-				"bungcip.better-toml",
-				"mhutchie.git-graph"
-			]
+				"tamasfe.even-better-toml",
+				"redhat.vscode-yaml",
+				"mhutchie.git-graph",
+				"foxundermoon.shell-format",
+				"timonwong.shellcheck",
+				"davidanson.vscode-markdownlint",
+				"oderwat.indent-rainbow",
+				"ms-azuretools.vscode-docker"
+			],
+			"settings": {
+				"shellformat.path": "/usr/bin/shfmt",
+				"shellformat.useEditorConfig": true
+			}
 		}
 	}
 	// 👇 Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.

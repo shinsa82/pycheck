@@ -24,7 +24,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
         libffi-dev \
         liblzma-dev \
         bash \
-        bash-completion
+        bash-completion \
+        shfmt
 
 # Python and poetry installation
 USER $USER
@@ -43,3 +44,5 @@ RUN echo "done 0" \
     && echo "done 3" \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && poetry config virtualenvs.in-project true
+
+RUN git config --global --add safe.directory /workspaces/pycheck
