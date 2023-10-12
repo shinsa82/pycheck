@@ -1,11 +1,14 @@
 "test of codegen, especially gen_gen()."
 from logging import getLogger
 
+from pytest import mark
 from rich import print
 from rich.markup import escape
-from sympy import Dummy, Lambda, S, Symbol, Tuple, true
+from sympy import Dummy, Lambda, S, Symbol, Tuple, true, srepr
+from time import perf_counter
 
 from pycheck import RefType
+from pycheck.codegen import CodeGenContext
 from pycheck.codegen.codegen_new import gen_inner
 from pycheck.codegen.sympy_lib import IsSorted, ListSymbol
 from pycheck.executor import PyCheckAssumeError, PyCheckFailError
@@ -33,13 +36,21 @@ class TestGenInner:
 
         print(f"type = {escape(typ)}")
         print(f"type ast = {reftype.type_obj}")
-        print(f"constraint = {constraint}")
+        print(f"constraint = {constraint} ({srepr(constraint)})")
+        times = []
 
-        code = gen_inner(reftype.type_obj, constraint)
-        print(code())
+        code = gen_inner(typ=reftype.type_obj,
+                         constraint=constraint, context=CodeGenContext())
+        for _ in range(10):
+            s0 = perf_counter()
+            print(code())
+            s1 = perf_counter()
+            times.append(s1-s0)
+
+        print(sum(times) * 1000 / len(times))
 
     def test_positive(self):
-        typ = "list[{x:int | x>0}]"
+        typ = "list[{x:int | x>-10}]"
         constraint = true_func()
         self._check(typ, constraint)
 

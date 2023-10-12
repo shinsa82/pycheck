@@ -4,8 +4,8 @@ from rich.markdown import Markdown
 from rich.markup import escape
 from sympy import Dummy, Lambda, S, srepr
 
-from pycheck import Config, PyCheckAssumeError, RefType, TypeStr, code_gen
-from pycheck.executor import evaluate, execute
+from pycheck import PyCheckAssumeError, RefType, TypeStr, code_gen
+from pycheck.executor import execute
 from pycheck.random import rand_int
 from pycheck.codegen.sympy_lib import List
 

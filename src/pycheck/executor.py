@@ -13,23 +13,6 @@ from .result import Result
 logger = getLogger(__name__)
 
 
-def evaluate(code: Code) -> Callable:
-    "evaluate code text to Python function."
-    locals_ = {'rand_int': rand_int, 'rand_bool': rand_bool,
-               'PyCheckAssumeError': PyCheckAssumeError,
-               'PyCheckFailError': PyCheckFailError,
-               'S': S}
-
-    # want to avoid use of 'exec()', but I'm using it as it is simple...
-    # typechecking function is stored into locals_
-    exec(code.text, globals(), locals_)
-    logger.info("defined sub- and main functions:")
-    logger.info(locals_)
-    logger.info("entrypoint:")
-    logger.info(locals_[code.entry_point])
-    return locals_[code.entry_point]
-
-
 def execute(tc_func: Callable, term: Any, config: Config = None) -> Result:
     "iteratively execute the code and returns its result."
     if config is None:
@@ -48,12 +31,12 @@ def execute(tc_func: Callable, term: Any, config: Config = None) -> Result:
             try:
                 b = tc_func(term)
                 if not b:
-                    raise PyCheckAssertError(success+1, "dummy")
+                    raise PyCheckAssertError(step=success+1, msg="dummy")
                 success += 1
             except PyCheckAssumeError as err:
                 logger.debug(err)
                 fail_assume += 1
-        logger.info("successfully executed. result = %s", b)
+        logger.info("successfully completed full iteration. result = %s", b)
         return Result(well_typed=b, max_iter=config.max_iter, retry=fail_assume)
     except PyCheckAssertError as err:
         # when type-checking failed

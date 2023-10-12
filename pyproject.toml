@@ -30,7 +30,7 @@ autopep8 = "*"
 isort = "*"
 pytest = "*"
 mypy = "*"
-jupyterlab = "^3.5.3"
+jupyterlab = "4.*"
 
 [tool.pylint.basic]
 good-names = ["f", "g"]

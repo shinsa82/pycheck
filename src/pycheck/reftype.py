@@ -24,4 +24,5 @@ class RefType:
         self.ast = parse_reftype(self.type)
         self.type_obj = get_type(
             self.ast, free_variables=[], strict=self.strict)
-        logger.info("parsed.")
+        logger.info("successfully parsed.")
+

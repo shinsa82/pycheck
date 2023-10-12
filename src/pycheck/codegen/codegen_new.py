@@ -1,6 +1,7 @@
 "new version of codegen."
 from logging import getLogger
 from pprint import pformat
+from time import perf_counter
 from typing import Callable
 
 from lark import Tree
@@ -13,7 +14,7 @@ from ..const import PyCheckAssumeError, PyCheckFailError
 from ..parsing import reconstruct
 from ..random.random_generators import rand_bool, rand_int
 from ..types import BaseType, FunctionType, ListType, ProdType, RefinementType
-from .codegen_base import CodeGenBase
+# from .codegen_base import CodeGenBase
 from .const import CodeGenContext, CodeGenResult, true_func
 from .sympy_lib import (All, Cons, Exist, IsSorted, Len, List, ListSymbol, Map,
                         TupleSymbol)
@@ -40,17 +41,17 @@ def tc_ref(
     "generate a code for typechecking the term with refinement types."
     logger.debug("var = %s", self.base_var)
     logger.debug("type = %s", self.base_type)
-    logger.info("predicate = %s", self.predicate)
+    logger.debug("predicate = %s", self.predicate)
 
-    logger.info("generating code for main type")
+    logger.debug("generating code for main type")
     (main_type_code, context) = self.base_type.gen(
         context=context, is_delta=True)
-    logger.info("code for main type:\n%s", main_type_code)
+    logger.debug("code for main type:\n%s", main_type_code)
 
-    logger.info("generating main code with predicate")
+    logger.debug("generating main code with predicate")
     _x = Symbol(self.base_var)
     body = main_type_code(_x) & self.predicate
-    logger.info('main code function body = %s', body)
+    logger.debug('main code function body = %s', body)
 
     # Simplifying here causes an error when Len(l) is used.
     # So moved simplify later, into gen method.
@@ -122,9 +123,9 @@ def tc_func(
     # var = str(param.children[0].children[0])
     x_ = Symbol(self.param_var)
 
-    logger.info(self.param_var)
-    logger.info("param type = %s", self.param_type)
-    logger.info("return type = %s", self.return_type)
+    logger.debug(self.param_var)
+    logger.debug("param type = %s", self.param_type)
+    logger.debug("return type = %s", self.return_type)
 
     gen_code, context = self.param_type.gen_gen(
         context=context, constraint=Lambda((Dummy('x'),), S.true))
@@ -133,13 +134,13 @@ def tc_func(
 
     def ret(f):
         v = gen_code(env=None)()
-        logger.info("v = %s", v)
+        logger.debug("generated v = %s", v)
         r = f(v)
-        logger.info("r = %s", r)
+        logger.debug("returned r = %s", r)
         return tc_code(r).subs(x_, v)
 
     # ret = Lambda((_f,), tc_code(_f(gen_code())))
-    logger.info(ret)
+    logger.debug(ret)
     return ret, context
 
 
@@ -198,7 +199,7 @@ def calc_constraint(expr, bound, symb) -> tuple[tuple[int, int], str]:
         (b1, ass2) = calc_constraint(expr.args[1], b0, symb)
         return (b1, Lambda((symb,), (ass1(symb)) & (ass2(symb))))
     else:
-        logger.warning("unsupported func: %s", expr.func)
+        logger.debug("unsupported func: %s", expr.func)
         return (bound, Lambda((symb,), expr))
 
 
@@ -209,6 +210,7 @@ def gen_base(
     **kwargs  # to process options # pylint: disable=unused-argument
 ) -> CodeGenResult:
     "generate a code for generating a value of base types."
+    logger.debug("[gen base]")
     match self.type:
         case 'int':
             def f(env=None):
@@ -221,12 +223,17 @@ def gen_base(
                         constraint = _const
 
                     _w = Dummy('w')
+                    _start = perf_counter()
                     _c = simplify(constraint(_w))
-                    logger.info("original constraint: %s", constraint)
-                    logger.info("simplified constraint: %s", _c)
-                    logger.info(srepr(_c))
+                    _end = perf_counter()
+                    logger.debug("original constraint: %s", constraint)
+                    logger.debug("simplified constraint: %s", _c)
+                    logger.debug("-> simplification: %f ms",
+                                 (_end-_start) * 1000.0)
+                    logger.debug(srepr(_c))
                     bound, assumption = calc_constraint(_c, (None, None), _w)
-                    logger.info((bound, assumption))
+                    logger.debug(f"bound = {bound}")
+                    logger.debug(f"assumption = {assumption}")
                     l, u = bound
 
                     v = rand_int(min_=l, max_=u)
@@ -252,9 +259,10 @@ def gen_ref(
     **kwargs  # to process options # pylint: disable=unused-argument
 ) -> CodeGenResult:
     "generate a code for generating a value of refinement types."
-    logger.info("var = %s", self.base_var)
-    logger.info("base type = %s", self.base_type)
-    logger.info("predicate = %s", self.predicate)
+    logger.debug("[gen ref]")
+    logger.debug("var = %s (%s)", self.base_var, type(self.base_var))
+    logger.debug("base type = %s", self.base_type)
+    logger.debug("predicate = %s (%s)", self.predicate, srepr(self.predicate))
 
     # implementing...
     # eval_refinement(reconstruct(predicate), var)
@@ -266,16 +274,19 @@ def gen_ref(
 
     if isinstance(self.base_type, ProdType):
         _x = TupleSymbol(self.base_var)
+    elif isinstance(self.base_type, ListType):
+        _x = ListSymbol(self.base_var)
     else:
         _x = Symbol(self.base_var)
     new_constraint = Lambda((_x,),
-                            self.predicate & (constraint(_x)))
-    logger.info(new_constraint)
+                            self.predicate.subs(Symbol(self.base_var), _x) & (constraint(_x)))
+    logger.debug(f"new constraint = %s (%s)",
+                 new_constraint, srepr(new_constraint))
 
     code, context = self.base_type.gen_gen(
         context=context, constraint=new_constraint)
 
-    logger.info(code)
+    logger.debug(code)
 
     def f(env=None):
         return code(env)
@@ -380,25 +391,65 @@ def gen_func(
 USE_EXIST = True
 
 
-def gen_inner(typ, constraint):
+def gen_inner(typ, constraint, context, idx=1, env=None):
     """
     'gen' function that is used within gen_list.
 
     Here typ is a ListType.
     """
-    def _():
-        logger.info("* gen_inner")
-        logger.info(f"type = %s", typ)
-        logger.info(f"constraint = %s", constraint)
+    if env is None:
+        env = {}
 
+    def _():
+        start = perf_counter()
+        assert isinstance(typ, ListType)
+
+        logger.debug(("*" * idx) + " gen_inner")
+        logger.debug(f"type = %s", typ)
+        logger.debug(f"constraint = %s", constraint)
+
+        logger.debug("choosing nil/cons...")
         if rand_bool(p=0.25):
-            logger.info("nil branch selected")
+            logger.debug("nil branch selected")
+            logger.debug("generated = %s", [])
             if constraint(List()) != S.true:
                 raise PyCheckAssumeError(
                     f'generated value {[]} did not satisfy the assumption {constraint}')
+            end = perf_counter()
+            logger.debug("list generation (%d): %f ms",
+                         idx, (end-start)*1000.0)
             return []
         else:
-            raise NotImplementedError("not implemented yet")
+            logger.debug("cons branch selected")
+            y_ = Symbol(f'y{idx}')
+            # y_ = ListSymbol(f'y{idx}')
+            z_ = ListSymbol(f'z{idx}')
+            z_tc_code, _context = typ.gen(
+                context=context, is_delta=True)
+            logger.debug(f"list type TC code = {z_tc_code}")
+            if USE_EXIST:
+                _constraint = Lambda((y_,), Exist(
+                    z_, z_tc_code(z_) & constraint(Cons(y_, z_)).subs(env)))
+            else:
+                _constraint = Lambda((y_,), S.true)
+            logger.debug(f"constraint for y = {_constraint}")
+
+            y_gen, _context = typ.base_type.gen_gen(
+                constraint=_constraint, context=_context)  # TODO
+            y = y_gen(env)()
+            logger.debug(f"generated y = {y}")
+            z = gen_inner(
+                typ,
+                constraint=Lambda((z_,), constraint(Cons(y, z_))),
+                context=_context,
+                idx=idx+1,
+                env=env | {y_: y}
+            )()
+            logger.debug(f"generated z = {z}")
+            end = perf_counter()
+            logger.debug("list generation(%d): %f ms", idx, (end-start)*1000.0)
+            return [y] + z
+
     return _
 
 
@@ -409,8 +460,9 @@ def gen_list(
     **kwargs  # to process options # pylint: disable=unused-argument
 ) -> CodeGenResult:
     "generate a code for generating a value of product types."
+    logger.debug("[gen list]")
     type_ = self.base_type
-    logger.info("element type = %s", type_)
+    logger.debug("  element type = %s", type_)
 
     # logger.info("generating code for element type")
     # (element_type_code, context) = self.gen(
@@ -419,7 +471,7 @@ def gen_list(
     # logger.info("generated code:\n%s", element_type_code)
 
     def gen(constr, idx):
-        logger.info("gen constraint: %s", constr)
+        logger.debug("gen constraint: %s", constr)
 
         def f(env=None):
             if env is None:
@@ -439,7 +491,7 @@ def gen_list(
                     z_ = ListSymbol(f'z{idx}')
                     z_tc_code, context = self.base_type.gen(
                         context=context, is_delta=True)
-                    logger.info(f"base type TC code = {z_tc_code}")
+                    logger.debug(f"base type TC code = {z_tc_code}")
                     if USE_EXIST:
                         _constraint = Lambda((y_,), Exist(
                             z_, z_tc_code(z_) & constraint(Cons(y_, z_)).subs(env)))
@@ -448,11 +500,13 @@ def gen_list(
                     y_gen, context = self.base_type.gen_gen(
                         constraint=_constraint, context=context)  # TODO
                     y = y_gen(env)()
+                    logger.debug(f"generated y = {y}")
                     z = gen(Lambda((z_,), constr(Cons(y, z_))),
                             idx+1)(env)()
                     return [y] + z
             return _
         return f
+
     return gen(constraint, 0), context
 
 
@@ -471,290 +525,290 @@ def setup():
     FunctionType.gen_gen = gen_func
 
 
-class CodeGen(CodeGenBase):
-    "new code generator that avoid to use symbolic boolean in SymPy."
+# class CodeGen(CodeGenBase):
+#     "new code generator that avoid to use symbolic boolean in SymPy."
 
-    def __init__(self, **kwargs):
-        "constructor. set method_mapping here."
-        super().__init__(
-            typecheck_method_mapping={
-                'base_type': self.tc_base,
-                'list_type': self.tc_list,
-                'ref_type': self.tc_ref,
-                'prod_type': self.tc_prod,
-                'func_type': self.tc_func,
-            },
-            gen_method_mapping={
-                'base_type': self.gen_base,
-                'list_type': self.gen_list,
-                'ref_type': self.gen_ref,
-                'prod_type': self.gen_prod,
-                'func_type': self.gen_func,
-            }
-        )
+#     def __init__(self, **kwargs):
+#         "constructor. set method_mapping here."
+#         super().__init__(
+#             typecheck_method_mapping={
+#                 'base_type': self.tc_base,
+#                 'list_type': self.tc_list,
+#                 'ref_type': self.tc_ref,
+#                 'prod_type': self.tc_prod,
+#                 'func_type': self.tc_func,
+#             },
+#             gen_method_mapping={
+#                 'base_type': self.gen_base,
+#                 'list_type': self.gen_list,
+#                 'ref_type': self.gen_ref,
+#                 'prod_type': self.gen_prod,
+#                 'func_type': self.gen_func,
+#             }
+#         )
 
-    def calc_constraint(self, expr, bound, symb) -> tuple[tuple[int, int], str]:
-        """
-        returns integer bound (inclusive). None means infinity.
+#     def calc_constraint(self, expr, bound, symb) -> tuple[tuple[int, int], str]:
+#         """
+#         returns integer bound (inclusive). None means infinity.
 
-        expr is a constraint expression.
-        bound is current interger interval.
-        symb is a free variable in expr.
-        """
-        # logger.info("%s: %s", expr, srepr(expr))
-        low, upp = bound
+#         expr is a constraint expression.
+#         bound is current interger interval.
+#         symb is a free variable in expr.
+#         """
+#         # logger.info("%s: %s", expr, srepr(expr))
+#         low, upp = bound
 
-        # TODO bound update is not complete.
-        if expr == S.true:  # it's correct; do not fix.
-            return (bound, S.true)
-        elif expr.func == StrictGreaterThan and expr.args[0] == symb:
-            # case of 'x > C'
-            c_ = expr.args[1]
-            if isinstance(c_, Integer):
-                c_ = as_int(c_ + 1)
-            else:  # Rational
-                c_ = as_int(ceiling(c_))
-            low = c_ if low is None else max(low, c_)
-            return ((low, upp), S.true)
-        elif expr.func == GreaterThan and expr.args[0] == symb:
-            # case of 'x >= C'
-            c_ = expr.args[1]
-            if isinstance(c_, Integer):
-                c_ = as_int(c_)
-            else:  # Rational
-                c_ = as_int(ceiling(c_))
-            low = c_ if low is None else max(low, c_)
-            return ((low, upp), S.true)
-        elif expr.func == StrictLessThan and expr.args[0] == symb:
-            # case of 'x < C'
-            c_ = expr.args[1]
-            if isinstance(c_, Integer):
-                c_ = as_int(c_ - 1)
-            else:  # Rational
-                c_ = as_int(floor(c_))
-            upp = c_ if upp is None else min(upp, c_)
-            return ((low, upp), S.true)
-        elif expr.func == LessThan and expr.args[0] == symb:
-            # case of 'x <= C'
-            c_ = expr.args[1]
-            if isinstance(c_, Integer):
-                c_ = as_int(c_)
-            else:  # Rational
-                c_ = as_int(floor(c_))
-            upp = c_ if upp is None else min(upp, c_)
-            return ((low, upp), S.true)
-        elif expr.func == And:
-            (b0, ass1) = self.calc_constraint(expr.args[0], bound, symb)
-            (b1, ass2) = self.calc_constraint(expr.args[1], b0, symb)
-            return (b1, ass1 & ass2)
-        else:
-            logger.warning("unsupported func: %s", expr.func)
-            return (bound, expr)
+#         # TODO bound update is not complete.
+#         if expr == S.true:  # it's correct; do not fix.
+#             return (bound, S.true)
+#         elif expr.func == StrictGreaterThan and expr.args[0] == symb:
+#             # case of 'x > C'
+#             c_ = expr.args[1]
+#             if isinstance(c_, Integer):
+#                 c_ = as_int(c_ + 1)
+#             else:  # Rational
+#                 c_ = as_int(ceiling(c_))
+#             low = c_ if low is None else max(low, c_)
+#             return ((low, upp), S.true)
+#         elif expr.func == GreaterThan and expr.args[0] == symb:
+#             # case of 'x >= C'
+#             c_ = expr.args[1]
+#             if isinstance(c_, Integer):
+#                 c_ = as_int(c_)
+#             else:  # Rational
+#                 c_ = as_int(ceiling(c_))
+#             low = c_ if low is None else max(low, c_)
+#             return ((low, upp), S.true)
+#         elif expr.func == StrictLessThan and expr.args[0] == symb:
+#             # case of 'x < C'
+#             c_ = expr.args[1]
+#             if isinstance(c_, Integer):
+#                 c_ = as_int(c_ - 1)
+#             else:  # Rational
+#                 c_ = as_int(floor(c_))
+#             upp = c_ if upp is None else min(upp, c_)
+#             return ((low, upp), S.true)
+#         elif expr.func == LessThan and expr.args[0] == symb:
+#             # case of 'x <= C'
+#             c_ = expr.args[1]
+#             if isinstance(c_, Integer):
+#                 c_ = as_int(c_)
+#             else:  # Rational
+#                 c_ = as_int(floor(c_))
+#             upp = c_ if upp is None else min(upp, c_)
+#             return ((low, upp), S.true)
+#         elif expr.func == And:
+#             (b0, ass1) = self.calc_constraint(expr.args[0], bound, symb)
+#             (b1, ass2) = self.calc_constraint(expr.args[1], b0, symb)
+#             return (b1, ass1 & ass2)
+#         else:
+#             logger.warning("unsupported func: %s", expr.func)
+#             return (bound, expr)
 
-    def gen_base(
-        self,
-        ast: Tree,
-        context: CodeGenContext,
-        constraint: Callable,
-        is_delta: bool = False,
-        **kwargs  # to process options # pylint: disable=unused-argument
-    ) -> CodeGenResult:
-        "generate a code for generating a value of base types."
-        type_str = reconstruct(ast)
-        match type_str:
-            case 'int':
-                _w = Dummy('w')
-                _c = simplify(constraint(_w))
-                logger.info("original constraint: %s", constraint)
-                logger.info("simplified constraint: %s", _c)
-                logger.info(srepr(_c))
-                bound, assumption = self.calc_constraint(_c, (None, None), _w)
-                logger.info((bound, assumption))
-                l, u = bound
+#     def gen_base(
+#         self,
+#         ast: Tree,
+#         context: CodeGenContext,
+#         constraint: Callable,
+#         is_delta: bool = False,
+#         **kwargs  # to process options # pylint: disable=unused-argument
+#     ) -> CodeGenResult:
+#         "generate a code for generating a value of base types."
+#         type_str = reconstruct(ast)
+#         match type_str:
+#             case 'int':
+#                 _w = Dummy('w')
+#                 _c = simplify(constraint(_w))
+#                 logger.info("original constraint: %s", constraint)
+#                 logger.info("simplified constraint: %s", _c)
+#                 logger.info(srepr(_c))
+#                 bound, assumption = self.calc_constraint(_c, (None, None), _w)
+#                 logger.info((bound, assumption))
+#                 l, u = bound
 
-                def f():
-                    v = rand_int(min_=l, max_=u)
-                    if not constraint(v):
-                        raise PyCheckAssumeError(
-                            f'generated value {v} did not satisfy the assumption {constraint}')
-                    return v
-                return f, context
-            case 'bool':
-                return rand_bool, context
-            case _:
-                raise ValueError(f"unsupported base type: {type_str}")
+#                 def f():
+#                     v = rand_int(min_=l, max_=u)
+#                     if not constraint(v):
+#                         raise PyCheckAssumeError(
+#                             f'generated value {v} did not satisfy the assumption {constraint}')
+#                     return v
+#                 return f, context
+#             case 'bool':
+#                 return rand_bool, context
+#             case _:
+#                 raise ValueError(f"unsupported base type: {type_str}")
 
-    def gen_ref(
-        self,
-        ast: Tree,
-        context: CodeGenContext,
-        constraint: Callable,
-        is_delta: bool = False,
-        **kwargs  # to process options # pylint: disable=unused-argument
-    ) -> CodeGenResult:
-        "generate a code for generating a value of refinement types."
-        base_var = str(ast.children[0].children[0].children[0].children[0])
-        base_type = ast.children[0].children[1]
-        predicate = ast.children[1]
-        logger.info("var = %s", base_var)
-        logger.info("base type = %s", base_type)
-        logger.info("predicate = %s\n%s", reconstruct(predicate), predicate)
+#     def gen_ref(
+#         self,
+#         ast: Tree,
+#         context: CodeGenContext,
+#         constraint: Callable,
+#         is_delta: bool = False,
+#         **kwargs  # to process options # pylint: disable=unused-argument
+#     ) -> CodeGenResult:
+#         "generate a code for generating a value of refinement types."
+#         base_var = str(ast.children[0].children[0].children[0].children[0])
+#         base_type = ast.children[0].children[1]
+#         predicate = ast.children[1]
+#         logger.info("var = %s", base_var)
+#         logger.info("base type = %s", base_type)
+#         logger.info("predicate = %s\n%s", reconstruct(predicate), predicate)
 
-        # implementing...
-        # eval_refinement(reconstruct(predicate), var)
+#         # implementing...
+#         # eval_refinement(reconstruct(predicate), var)
 
-        # old
-        # def new_pred_func(x):
-        #     return S(reconstruct(predicate)
-        #              ).subs(symbols(var), x) & pred_func(x)
+#         # old
+#         # def new_pred_func(x):
+#         #     return S(reconstruct(predicate)
+#         #              ).subs(symbols(var), x) & pred_func(x)
 
-        logger.info('sympifying predicate...')
-        predicate_s = S(reconstruct(predicate), locals={'is_sorted': IsSorted})
-        logger.info(srepr(predicate_s))
+#         logger.info('sympifying predicate...')
+#         predicate_s = S(reconstruct(predicate), locals={'is_sorted': IsSorted})
+#         logger.info(srepr(predicate_s))
 
-        _x = Symbol(base_var)
-        new_constraint = Lambda((_x,),
-                                predicate_s & (constraint(_x)))
-        logger.info(new_constraint)
+#         _x = Symbol(base_var)
+#         new_constraint = Lambda((_x,),
+#                                 predicate_s & (constraint(_x)))
+#         logger.info(new_constraint)
 
-        code, context = self.gen_gen(
-            base_type, context=context, constraint=new_constraint)
+#         code, context = self.gen_gen(
+#             base_type, context=context, constraint=new_constraint)
 
-        logger.info(code)
+#         logger.info(code)
 
-        return code, context
+#         return code, context
 
-    def gen_prod(
-        self,
-        ast: Tree,
-        context: CodeGenContext,
-        constraint: Callable,
-        is_delta: bool = False,
-        **kwargs  # to process options # pylint: disable=unused-argument
-    ) -> CodeGenResult:
-        "generate a code for generating a value of product types."
-        subtypes = []
-        for ch in ast.children:
-            if ch.data == "innertypedparam":  # childlen other than the last one
-                logger.info("var = %s", ch.children[0])
-                logger.info("type = %s", ch.children[1])
-                subtypes.append(
-                    (str(ch.children[0].children[0]), ch.children[1]))
-            else:
-                # probably the last element
-                subtypes.append((None, ch))
+#     def gen_prod(
+#         self,
+#         ast: Tree,
+#         context: CodeGenContext,
+#         constraint: Callable,
+#         is_delta: bool = False,
+#         **kwargs  # to process options # pylint: disable=unused-argument
+#     ) -> CodeGenResult:
+#         "generate a code for generating a value of product types."
+#         subtypes = []
+#         for ch in ast.children:
+#             if ch.data == "innertypedparam":  # childlen other than the last one
+#                 logger.info("var = %s", ch.children[0])
+#                 logger.info("type = %s", ch.children[1])
+#                 subtypes.append(
+#                     (str(ch.children[0].children[0]), ch.children[1]))
+#             else:
+#                 # probably the last element
+#                 subtypes.append((None, ch))
 
-        logger.info("subtypes:")
-        for subtype in subtypes:
-            logger.info(f"%s: %s", subtype[0], reconstruct(subtype[1]))
-        # logger.info(pformat(subtypes))
-        if len(subtypes) > 2:
-            raise NotImplementedError(
-                "currently n-tuple (where n > 2) is not supported")
+#         logger.info("subtypes:")
+#         for subtype in subtypes:
+#             logger.info(f"%s: %s", subtype[0], reconstruct(subtype[1]))
+#         # logger.info(pformat(subtypes))
+#         if len(subtypes) > 2:
+#             raise NotImplementedError(
+#                 "currently n-tuple (where n > 2) is not supported")
 
-        x1 = Symbol(subtypes[0][0])
-        _x2 = Dummy('x2')
-        _x3 = Dummy('x3')
+#         x1 = Symbol(subtypes[0][0])
+#         _x2 = Dummy('x2')
+#         _x3 = Dummy('x3')
 
-        # codegen sigma(tau2)
-        x2_tc_code, context = self.gen(
-            subtypes[1][1], context=context, is_delta=True)
-        logger.info(x2_tc_code)
+#         # codegen sigma(tau2)
+#         x2_tc_code, context = self.gen(
+#             subtypes[1][1], context=context, is_delta=True)
+#         logger.info(x2_tc_code)
 
-        const2 = Lambda((_x2,), constraint((x1, _x2)))  # here x1 is free
-        logger.info("const2 = %s", const2)
-        const1 = Lambda((x1,), Exist(_x3, x2_tc_code(_x3) & const2(_x3)))
-        logger.info("const1 = %s", const1)
+#         const2 = Lambda((_x2,), constraint((x1, _x2)))  # here x1 is free
+#         logger.info("const2 = %s", const2)
+#         const1 = Lambda((x1,), Exist(_x3, x2_tc_code(_x3) & const2(_x3)))
+#         logger.info("const1 = %s", const1)
 
-        code1, context = self.gen_gen(
-            subtypes[0][1], context=context, constraint=const1)
+#         code1, context = self.gen_gen(
+#             subtypes[0][1], context=context, constraint=const1)
 
-        def f():
-            v1 = code1()
-            code2, context = self.gen_gen(
-                subtypes[1][1], context=context, constraint=const2(v1))
-            v2 = code2()
-            return (v1, v2)
+#         def f():
+#             v1 = code1()
+#             code2, context = self.gen_gen(
+#                 subtypes[1][1], context=context, constraint=const2(v1))
+#             v2 = code2()
+#             return (v1, v2)
 
-        return f, context
+#         return f, context
 
-    def gen_func(
-        self,
-        ast: Tree,
-        context: CodeGenContext,
-        constraint: Callable,
-        is_delta: bool = False,
-        **kwargs  # to process options # pylint: disable=unused-argument
-    ) -> CodeGenResult:
-        "generate a code for generating a value of product types."
-        params = ast.children[0]
+#     def gen_func(
+#         self,
+#         ast: Tree,
+#         context: CodeGenContext,
+#         constraint: Callable,
+#         is_delta: bool = False,
+#         **kwargs  # to process options # pylint: disable=unused-argument
+#     ) -> CodeGenResult:
+#         "generate a code for generating a value of product types."
+#         params = ast.children[0]
 
-        if len(params.children) == 0:
-            raise NotImplementedError(
-                "currently 0-argument function (= thunk) is not supported")
-        if len(params.children) > 1:
-            raise NotImplementedError(
-                "currently more than binary function is not supported")
+#         if len(params.children) == 0:
+#             raise NotImplementedError(
+#                 "currently 0-argument function (= thunk) is not supported")
+#         if len(params.children) > 1:
+#             raise NotImplementedError(
+#                 "currently more than binary function is not supported")
 
-        param = params.children[0]
-        var = str(param.children[0].children[0])
-        x_ = Symbol(var)
-        var_type = param.children[1]
-        return_type = ast.children[1]
+#         param = params.children[0]
+#         var = str(param.children[0].children[0])
+#         x_ = Symbol(var)
+#         var_type = param.children[1]
+#         return_type = ast.children[1]
 
-        logger.info('---')
-        # logger.info(param)
-        logger.info("param name = %s", var)
-        logger.info("param type = %s:\n%s", reconstruct(
-            var_type), var_type.pretty())
-        logger.info("return type = %s:\n%s", reconstruct(
-            return_type), return_type.pretty())
+#         logger.info('---')
+#         # logger.info(param)
+#         logger.info("param name = %s", var)
+#         logger.info("param type = %s:\n%s", reconstruct(
+#             var_type), var_type.pretty())
+#         logger.info("return type = %s:\n%s", reconstruct(
+#             return_type), return_type.pretty())
 
-        var_tc, context = self.gen(var_type, context=context)
-        ret_gen, context = self.gen_gen(return_type, context=context)
+#         var_tc, context = self.gen(var_type, context=context)
+#         ret_gen, context = self.gen_gen(return_type, context=context)
 
-        def f():
-            return lambda x: ret_gen() if rand_bool() or var_tc(x) else PyCheckFailError
+#         def f():
+#             return lambda x: ret_gen() if rand_bool() or var_tc(x) else PyCheckFailError
 
-        return f, context
+#         return f, context
 
-    def gen_list(
-        self,
-        ast: Tree,
-        context: CodeGenContext,
-        constraint: Callable,
-        is_delta: bool = False,
-        **kwargs  # to process options # pylint: disable=unused-argument
-    ) -> CodeGenResult:
-        "generate a code for generating a value of product types."
-        type_ = ast.children[0]
-        logger.info("element type = %s", type_)
+#     def gen_list(
+#         self,
+#         ast: Tree,
+#         context: CodeGenContext,
+#         constraint: Callable,
+#         is_delta: bool = False,
+#         **kwargs  # to process options # pylint: disable=unused-argument
+#     ) -> CodeGenResult:
+#         "generate a code for generating a value of product types."
+#         type_ = ast.children[0]
+#         logger.info("element type = %s", type_)
 
-        # logger.info("generating code for element type")
-        # (element_type_code, context) = self.gen(
-        #     ast=type_, context=context, is_delta=True
-        # )
-        # logger.info("generated code:\n%s", element_type_code)
+#         # logger.info("generating code for element type")
+#         # (element_type_code, context) = self.gen(
+#         #     ast=type_, context=context, is_delta=True
+#         # )
+#         # logger.info("generated code:\n%s", element_type_code)
 
-        def gen(constr, idx):
-            logger.info("gen constraint: %s", constr)
+#         def gen(constr, idx):
+#             logger.info("gen constraint: %s", constr)
 
-            def f():
-                context = CodeGenContext()
-                if rand_bool(p=0.25):
-                    logger.info("** nil branch")
-                    if constr(List()) != S.true:
-                        raise PyCheckAssumeError(
-                            f'generated value {[]} did not satisfy the assumption {constr}')
-                    return []
-                else:
-                    logger.info("** cons branch")
-                    z_ = ListSymbol(f'z{idx}')
-                    logger.info(z_)
-                    y_gen, context = self.gen_gen(
-                        type_, constraint=true_func(), context=context)  # TODO
-                    y = y_gen()
-                    z = gen(Lambda((z_,), constr(Cons(y, z_))), idx+1)()
-                    return [y] + z
-            return f
-        return gen(constraint, 0), context
+#             def f():
+#                 context = CodeGenContext()
+#                 if rand_bool(p=0.25):
+#                     logger.info("** nil branch")
+#                     if constr(List()) != S.true:
+#                         raise PyCheckAssumeError(
+#                             f'generated value {[]} did not satisfy the assumption {constr}')
+#                     return []
+#                 else:
+#                     logger.info("** cons branch")
+#                     z_ = ListSymbol(f'z{idx}')
+#                     logger.info(z_)
+#                     y_gen, context = self.gen_gen(
+#                         type_, constraint=true_func(), context=context)  # TODO
+#                     y = y_gen()
+#                     z = gen(Lambda((z_,), constr(Cons(y, z_))), idx+1)()
+#                     return [y] + z
+#             return f
+#         return gen(constraint, 0), context

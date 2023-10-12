@@ -9,10 +9,13 @@ INT_UPPER_BOUND = 100
 
 def rand_int(min_=INT_LOWER_BOUND, max_=INT_UPPER_BOUND) -> int:
     "return a random integer."
-    if min_ is None:
+    if min_ is None and max_ is None:
         min_ = INT_LOWER_BOUND
-    if max_ is None:
         max_ = INT_UPPER_BOUND
+    elif min_ is None:
+        min_ = min(INT_LOWER_BOUND, max_ - 100)
+    elif max_ is None:
+        max_ = max(INT_UPPER_BOUND, min_ + 100)
 
     return int(rng.integers(min_, max_, endpoint=True))
 

@@ -7,9 +7,8 @@ from typing import Any
 from sympy import srepr
 
 from ..reftype import RefType
-# from .codegen import gen_gen, gen_typecheck_code
-from .codegen_new import CodeGen, setup
-from .const import Code, CodeGenContext
+from .codegen_new import setup
+from .const import Code, CodeGenContext, true_func
 
 logger = getLogger(__name__)
 
@@ -39,6 +38,8 @@ def code_gen(reftype: RefType, mode="typecheck", is_delta=False, constraint=None
         )
     else:
         assert mode == "gen"
+        if constraint is None:
+            constraint = true_func()
         (code, _) = reftype.type_obj.gen_gen(
             context=CodeGenContext(),
             constraint=constraint)

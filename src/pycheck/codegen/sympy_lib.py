@@ -3,14 +3,18 @@ custom extension classes for SymPy.
 
 It includes ListExpr, List, ListSymbol and other helper classes.
 """
-from sympy import Add, S, Symbol
+from logging import getLogger
+
+from sympy import Add, S, Symbol, simplify
 from sympy.core import Basic, Tuple, sympify
 from sympy.core.containers import TupleKind
 from sympy.core.expr import Expr
 from sympy.core.kind import BooleanKind, Kind, NumberKind
 from sympy.core.symbol import Str
 from sympy.core.sympify import converter
-from sympy.logic.boolalg import ITE, And, Boolean, Or
+from sympy.logic.boolalg import ITE, And, Boolean, Or, to_dnf
+
+logger = getLogger(__name__)
 
 
 class _ListKind(Kind):
@@ -206,7 +210,8 @@ class Exist(Expr, Boolean):
         Here `var` is a bound variable (not tuple), and
         `expr` is a SymPy expression that may contain the `var`.
         """
-        obj = Expr.__new__(cls, sympify(var), sympify(expr))
+        expr = sympify(expr)
+        obj = Expr.__new__(cls, sympify(var), expr)
         return obj
 
     @property
@@ -239,11 +244,73 @@ class Exist(Expr, Boolean):
     #     # TODO: implement simplification
     #     return S.true
 
+    def _sub(self, expr):
+        if expr.func == All:
+            logger.info("DEBUG: Exist(All) to True")
+            return S.true
+        if expr.func == And or expr.func == Or:
+            return expr.func(*[self._sub(arg) for arg in expr.args])
+        return expr
+
+    def _pullout(self, exist):
+        "pull out free expression out of the Exist."
+        var = exist.args[0]
+        expr = exist.args[1]
+
+        if expr.func == And:
+            free_exprs = []
+            bound_exprs = []
+            # debug print
+            logger.info("bound variable = %s", var)
+            logger.info("expr (of %s) =", expr.func)
+            for i, arg in enumerate(expr.args):
+                logger.info("%d: %s", i, arg)
+                logger.info(arg.free_symbols)
+                if var in arg.free_symbols:
+                    bound_exprs.append(simplify(arg))
+                else:
+                    free_exprs.append(simplify(arg))
+            return And(*free_exprs, Exist(var, And(*bound_exprs)))
+
+        return exist
+
     def _eval_simplify(self, **kwargs):
         "needed?"
-        if self.args[1] == S.true:
+        logger.info("simplifying Exist...")
+        assert len(self.args) == 2
+        var = self.args[0]
+        expr = self.args[1]
+
+        # debug print
+        # logger.info("bound variable = %s", var)
+        # logger.info("expr (of %s) =", expr.func)
+        # for i, arg in enumerate(expr.args):
+        #     logger.info("%d: %s", i, arg)
+        #     logger.info(arg.free_symbols)
+
+        if expr == S.true:  # (Exist x. True) -> True
             return S.true
-        return self
+
+        exist2 = Exist(var, self._sub(expr))
+        return self._pullout(exist2)
+
+        # if expr.func == All:  # TODO: (Exist x. All(...)) -> True
+        #     logger.info("DEBUG: Exist(All) to True")
+        #     return S.true
+        # # (Exist x. And(...)) -> (Exist x. And'(...))
+        # if expr.func == Or:
+        #     return Or(*[Exist(var, arg) for arg in expr.args])
+        #     # # analyze each phrases under And
+        #     # new_args = []
+        #     # free_expr = None
+        #     # for arg in expr.args:
+        #     #     if arg.func == All:
+        #     #         logger.info("DEBUG: Exist(All) to True")
+        #     #         new_args.append(S.true)
+        #     #     else:
+        #     #         new_args.append(arg)
+        #     # return Exist(var, And(*new_args))
+        # return self
 
 
 class TupleSymbol(Expr):
@@ -324,7 +391,7 @@ class IsSorted(Expr, Boolean):
         elif isinstance(l, Cons):
             y = l.args[0]
             z = l.args[1]
-            return IsNil(z) | ((Len(z)>=1) & (y < z[0]) & IsSorted(z))
+            return IsNil(z) | ((Len(z) >= 1) & (y < z[0]) & IsSorted(z))
             # return ITE(
             #     IsNil(z),
             #     S.true,
