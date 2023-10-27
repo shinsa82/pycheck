@@ -45,4 +45,6 @@ RUN echo "done 0" \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && poetry config virtualenvs.in-project true
 
-RUN git config --global --add safe.directory /workspaces/pycheck
+# git setting via env variables
+ENV GIT_AUTHOR_EMAIL "shinsa82@gmail.com"
+ENV GIT_AUTHOR_NAME "Shin SAITO"
