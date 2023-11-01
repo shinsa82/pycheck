@@ -32,6 +32,7 @@ class TestGenInner:
     "test for the inner method of gen_list."
 
     def _check(self, typ, constraint):
+        "test utility."
         reftype = RefType(typ, strict=False)
 
         print(f"type = {escape(typ)}")

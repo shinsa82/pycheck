@@ -11,6 +11,8 @@ from ..parsing import TypeType, reconstruct
 
 @dataclass
 class PycheckType:
+    # parsed AST by Lark
+    ast: Tree = field(repr=False)
     "super class for parsed types."
     # iterable of variables that may occur free.
     # this will be used to handle dependent types.
@@ -73,11 +75,11 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
     match ast.data:
         case TypeType.BaseType.value:
             ch = ast.children[0]
-            if isinstance(ch, Token):
-                return BaseType(type=ch.value, free_variables=free_variables)
-            else:
+            if isinstance(ch, Token):  # int or bool
+                return BaseType(ast=ast, type=ch.value, free_variables=free_variables)
+            else:  # None (NoneType)
                 assert ch.data == 'none'
-                return BaseType(type=ch.children[0].value, free_variables=free_variables)
+                return BaseType(ast=ast, type=ch.children[0].value, free_variables=free_variables)
         case TypeType.ProductType.value:
             if strict and len(ast.children) != 2:
                 raise NotImplementedError(
@@ -88,6 +90,7 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
             second_type = ast.children[1]
 
             return ProdType(
+                ast=ast,
                 first_var=first_var,
                 first_type=get_type(
                     first_type, free_variables=free_variables),
@@ -121,6 +124,7 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
                         f"free variable scope is invalid. '{symb.name}' should not appear here")
 
             return RefinementType(
+                ast=ast,
                 base_var=first_var,
                 base_type=base_type,
                 predicate=predicate,
@@ -130,6 +134,7 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
         case TypeType.ListType.value:
             base_type = ast.children[0]
             return ListType(
+                ast=ast,
                 base_type=get_type(base_type, free_variables=free_variables), free_variables=free_variables,
             )
         case TypeType.FuncType.value:
@@ -147,6 +152,7 @@ def get_type(ast: Tree, free_variables=None, strict=True) -> PycheckType:
                 first_var = first_param.children[0].children[0].value
                 first_type = first_param.children[1]
                 return FunctionType(
+                    ast=ast,
                     param_var=first_var,
                     param_type=get_type(
                         first_type, free_variables=free_variables),

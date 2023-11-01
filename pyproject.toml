@@ -2,10 +2,10 @@
 name = "pycheck"
 version = "0.5.0"
 description = "A tool for property-based random testing (PBRT) for Python programs"
-authors = ["Shin Saito <shinsa82@gmail.com>"]
+authors = ["Shin SAITO <shinsa82@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-documentation = "README.md"
+documentation = "https://github.com/shinsa82/pycheck"
 repository = "https://github.com/shinsa82/pycheck"
 
 [tool.poetry.dependencies]

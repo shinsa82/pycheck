@@ -177,6 +177,10 @@ class TestList:
         "sorted list"
         check("{ l:list[int] | is_sorted(l) }", max_iter=20)
 
+    def test_list3(self):
+        "case when the list part has open variable(s)."
+        check("x:int * list[{ y:int | y > x }]", max_iter=20)
+
     # def test_list2(self):
     #     "simplest test"
     #     reftype = parse_reftype("{l: list[int] | len(l)>0 }")
