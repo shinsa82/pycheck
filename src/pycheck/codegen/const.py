@@ -71,5 +71,17 @@ class CodeGenContext:
         self.var_suffix += 1
         return ret
 
+    def funci(self):
+        return self.get_fsuf()
+
+    def vari(self):
+        return self.get_vsuf()
+
+    def func(self, symb):
+        return f'{symb}{self.funci()}'
+
+    def var(self, symb):
+        return f'{symb}{self.vari()}'
+
 
 CodeGenResult: TypeAlias = tuple[Code, CodeGenContext]

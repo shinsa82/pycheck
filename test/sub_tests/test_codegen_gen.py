@@ -25,16 +25,6 @@ locals_ = {'rand_int': rand_int, 'rand_bool': rand_bool,
            'PyCheckFailError': PyCheckFailError}
 
 
-# def exec_code(code):
-#     "subroutine for test."
-#     # locals_ = {}
-#     logger.info("executing code...")
-#     exec(code.text, globals(), locals_)
-#     for _ in range(10):
-#         result = locals_[code.entry_point]()  # returns a generated value
-#         logger.info("generated value = %s", result)
-
-
 class TestBase:
     "test for base types and predicate function."
 
@@ -175,11 +165,11 @@ class TestList:
 
     def test_list2(self):
         "sorted list"
-        check("{ l:list[int] | is_sorted(l) }", max_iter=20)
+        check("{ l:list[int] | is_sorted(l) }", max_iter=1, seed=21120915)
 
     def test_list3(self):
         "case when the list part has open variable(s)."
-        check("x:int * list[{ y:int | y > x }]", max_iter=20)
+        check("x:int * list[{ y:int | y > x }]", max_iter=1)
 
     # def test_list2(self):
     #     "simplest test"

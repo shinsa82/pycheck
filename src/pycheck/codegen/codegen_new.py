@@ -317,7 +317,7 @@ def gen_prod(
 
     subtypes = []
 
-    logger.debug(f"type = {reconstruct(self.ast)}")
+    logger.debug(f"type = {reconstruct(self)}")
     logger.debug("first var = %s", self.first_var)
     logger.debug("first type = %s", self.first_type)
     logger.debug("second type = %s", self.second_type)
@@ -390,69 +390,72 @@ def gen_func(
     return f, context
 
 
-USE_EXIST = True
-
-
-def gen_inner(typ, constraint, context, idx=1, env=None):
+def gen_inner(typ, constraint, context, delta_exp, idx=1):
     """
-    'gen' function that is used within gen_list.
+    'gen' function in my paper, used within gen_list().
 
-    Here typ is a ListType.
+    Here typ should be a ListType.
     """
-    if env is None:
-        env = {}
+    def _outer(env=None):
+        env = env or {}  # bound env in this closure
 
-    def _():
-        start = perf_counter()
-        assert isinstance(typ, ListType)
+        def _():
+            logger.debug("[gen_inner]")
+            logger.debug("list generation(%d): start", idx)
+            start = perf_counter()
+            assert isinstance(typ, ListType)
 
-        logger.debug(("*" * idx) + " gen_inner")
-        logger.debug(f"type = %s", typ)
-        logger.debug(f"constraint = %s", constraint)
+            logger.debug("type = %s", reconstruct(typ))
+            logger.debug("constraint = %s", constraint)
+            logger.debug("  constraint (srepr): %s", srepr(constraint))
 
-        logger.debug("choosing nil/cons...")
-        if rand_bool(p=0.25):
-            logger.debug("nil branch selected")
-            logger.debug("generated = %s", [])
-            if constraint(List()) != S.true:
-                raise PyCheckAssumeError(
-                    f'generated value {[]} did not satisfy the assumption {constraint}')
-            end = perf_counter()
-            logger.debug("list generation (%d): %f ms",
-                         idx, (end-start)*1000.0)
-            return []
-        else:
-            logger.debug("cons branch selected")
-            y_ = Symbol(f'y{idx}')
-            # y_ = ListSymbol(f'y{idx}')
-            z_ = ListSymbol(f'z{idx}')
-            z_tc_code, _context = typ.gen(
-                context=context, is_delta=True)
-            logger.debug(f"list type TC code = {z_tc_code}")
-            if USE_EXIST:
-                _constraint = Lambda((y_,), Exist(
-                    z_, z_tc_code(z_) & constraint(Cons(y_, z_)).subs(env)))
+            logger.debug("choosing nil/cons...")
+            if rand_bool(p=0.25):
+                logger.debug("nil branch selected")
+                logger.debug("generated = %s", [])
+                ph_nil = constraint(List())
+                logger.debug("ψ(nil) = %s", ph_nil)
+                if ph_nil != S.true:
+                    raise PyCheckAssumeError(
+                        f'generated value {[]} did not satisfy the assumption {constraint}')
+                end = perf_counter()
+                logger.debug("list generation (%d): %f ms",
+                             idx, (end-start)*1000.0)
+                return []
             else:
-                _constraint = Lambda((y_,), S.true)
-            logger.debug(f"constraint for y = {_constraint}")
+                logger.debug("cons branch selected")
+                y_ = Symbol(context.var('y'))
+                z_ = ListSymbol(context.var('z'))
+                p1 = constraint(Cons(y_, z_))
+                logger.debug("ψ(cons %s %s) = %s", y_, z_, p1)
+                # z_tc_code, _context = typ.gen(
+                #     context=context, is_delta=True)
+                logger.debug(f"list type TC code = {delta_exp}")
+                _constraint = Lambda((y_,), Exist(
+                    z_, delta_exp(z_) & constraint(Cons(y_, z_)).subs(env)))
+                logger.debug(f"constraint for y = {_constraint}")
 
-            y_gen, _context = typ.base_type.gen_gen(
-                constraint=_constraint, context=_context)  # TODO
-            y = y_gen(env)()
-            logger.debug(f"generated y = {y}")
-            z = gen_inner(
-                typ,
-                constraint=Lambda((z_,), constraint(Cons(y, z_))),
-                context=_context,
-                idx=idx+1,
-                env=env | {y_: y}
-            )()
-            logger.debug(f"generated z = {z}")
-            end = perf_counter()
-            logger.debug("list generation(%d): %f ms", idx, (end-start)*1000.0)
-            return [y] + z
+                y_gen, _context = typ.base_type.gen_gen(
+                    constraint=_constraint, context=context)  # TODO
+                y = y_gen(env)()
+                logger.debug(f"generated y = {y}")
+                z = gen_inner(
+                    typ,
+                    constraint=Lambda((z_,), constraint(Cons(y, z_))),
+                    context=_context,
+                    idx=idx+1,
+                    delta_exp=delta_exp,
+                    # env=env | {y_: y}
+                )(env | {y_: y})()
+                logger.debug(f"generated z = {z}")
+                end = perf_counter()
+                logger.debug("list generation(%d): %f ms",
+                             idx, (end-start)*1000.0)
+                return [y] + z
 
-    return _
+        return _
+
+    return _outer
 
 
 def gen_list(
@@ -468,51 +471,19 @@ def gen_list(
     logger.debug("  constraint: %s", constraint)
     logger.debug("  constraint (srepr): %s", srepr(constraint))
 
-    return gen_inner(type_, constraint, context), context
-    # logger.info("generating code for element type")
-    # (element_type_code, context) = self.gen(
-    #     ast=type_, context=context, is_delta=True
-    # )
-    # logger.info("generated code:\n%s", element_type_code)
+    logger.debug("---- pre computation exp ----")
+    logger.debug("ψ(nil) = %s", constraint(List()))
+    y_ = Symbol(context.var('y'))
+    z_ = ListSymbol(context.var('z'))
+    p1 = constraint(Cons(y_, z_))
+    logger.debug("ψ(cons %s %s) = %s", y_, z_, p1)
+    delta, context = self.gen(context=context, is_delta=True)
+    logger.debug("δ(%s)(%s) = %s", reconstruct(self), z_, delta(z_))
+    logger.debug("∃z clause = %s", Exist(
+        (z_,), delta(z_) & constraint(Cons(y_, z_))))
+    logger.debug("==== pre computation exp ====")
 
-    def gen(constr, idx):
-        logger.debug("gen constraint: %s", constr)
-
-        def f(env=None):
-            if env is None:
-                env = {}
-
-            def _():
-                context = CodeGenContext()
-                if rand_bool(p=0.25):
-                    logger.info("** nil branch")
-                    if constr(List()) != S.true:
-                        raise PyCheckAssumeError(
-                            f'generated value {[]} did not satisfy the assumption {constr}')
-                    return []
-                else:
-                    logger.info("** cons branch")
-                    y_ = ListSymbol(f'y{idx}')
-                    z_ = ListSymbol(f'z{idx}')
-                    z_tc_code, context = self.base_type.gen(
-                        context=context, is_delta=True)
-                    logger.debug(f"base type TC code = {z_tc_code}")
-                    if USE_EXIST:
-                        _constraint = Lambda((y_,), Exist(
-                            z_, z_tc_code(z_) & constraint(Cons(y_, z_)).subs(env)))
-                    else:
-                        _constraint = Lambda((y_,), S.true)
-                    y_gen, context = self.base_type.gen_gen(
-                        constraint=_constraint, context=context)  # TODO
-                    y = y_gen(env)()
-                    logger.debug(f"generated y = {y}")
-                    z = gen(Lambda((z_,), constr(Cons(y, z_))),
-                            idx+1)(env)()
-                    return [y] + z
-            return _
-        return f
-
-    return gen(constraint, 0), context
+    return gen_inner(self, constraint, context, delta_exp=delta), context
 
 
 def setup():

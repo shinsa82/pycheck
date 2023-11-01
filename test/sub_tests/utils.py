@@ -5,9 +5,9 @@ from rich.markup import escape
 from sympy import Dummy, Lambda, S, srepr
 
 from pycheck import PyCheckAssumeError, RefType, TypeStr, code_gen
-from pycheck.executor import execute
-from pycheck.random import rand_int
 from pycheck.codegen.sympy_lib import List
+from pycheck.executor import execute
+from pycheck.random import rand_int, set_seed
 
 # pylint:disable=invalid-name
 
@@ -48,7 +48,7 @@ def codegen_tc_and_exec(typ: TypeStr, val, is_typed: bool = True, max_iter=1):
         assert is_typed
 
 
-def codegen_gen_and_exec(typ: TypeStr, constraint=None, custom_env=None, custom_tc=None, max_iter=20, func=False, strict=False):
+def codegen_gen_and_exec(typ: TypeStr, constraint=None, custom_env=None, custom_tc=None, max_iter=20, func=False, strict=False, seed=None):
     """
     (2023/06 latest) Subroutine for test that generates a generator code for the given type
     and execute it.
@@ -69,6 +69,9 @@ def codegen_gen_and_exec(typ: TypeStr, constraint=None, custom_env=None, custom_
         check_code = custom_tc
     else:
         check_code = code_gen(reftype=reftype, is_delta=False)
+
+    if seed is not None:
+        set_seed(seed)
 
     if func:
         f = code()
