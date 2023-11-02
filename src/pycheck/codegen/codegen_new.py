@@ -431,8 +431,10 @@ def gen_inner(typ, constraint, context, delta_exp, idx=1):
                 # z_tc_code, _context = typ.gen(
                 #     context=context, is_delta=True)
                 logger.debug(f"list type TC code = {delta_exp}")
-                _constraint = Lambda((y_,), Exist(
-                    z_, delta_exp(z_) & constraint(Cons(y_, z_)).subs(env)))
+                exist_clause = Exist(
+                    z_, delta_exp(z_) & constraint(Cons(y_, z_)).subs(env))
+                logger.debug("∃z clause = %s", exist_clause)
+                _constraint = Lambda((y_,), exist_clause)
                 logger.debug(f"constraint for y = {_constraint}")
 
                 y_gen, _context = typ.base_type.gen_gen(
@@ -479,8 +481,8 @@ def gen_list(
     logger.debug("ψ(cons %s %s) = %s", y_, z_, p1)
     delta, context = self.gen(context=context, is_delta=True)
     logger.debug("δ(%s)(%s) = %s", reconstruct(self), z_, delta(z_))
-    logger.debug("∃z clause = %s", Exist(
-        (z_,), delta(z_) & constraint(Cons(y_, z_))))
+    # logger.debug("∃z clause = %s", Exist(
+    #     (z_,), delta(z_) & constraint(Cons(y_, z_))))
     logger.debug("==== pre computation exp ====")
 
     return gen_inner(self, constraint, context, delta_exp=delta), context
