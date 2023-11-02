@@ -9,6 +9,7 @@ from sympy import srepr
 from ..reftype import RefType
 from .codegen_new import setup
 from .const import Code, CodeGenContext, true_func
+from .qe import qe
 
 logger = getLogger(__name__)
 
