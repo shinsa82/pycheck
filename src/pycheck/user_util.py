@@ -41,6 +41,9 @@ def parse(t: TypeStr) -> RefType:
     "parsing utility."
     return RefType(t)
 
+def typechecker(t: TypeStr):
+    "get the type checker for the type."
+    return code_gen(reftype=RefType(t), mode="typecheck")
 
 def generator(t: TypeStr, constraint=None):
     "get the data generator for the type."
