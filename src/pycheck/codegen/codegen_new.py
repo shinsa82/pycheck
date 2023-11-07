@@ -377,12 +377,12 @@ def gen_func(
     # logger.info(param)
     logger.info("param name = %s", var)
     logger.info("param type = %s:\n%s", reconstruct(
-        var_type), var_type.pretty())
+        var_type), var_type)
     logger.info("return type = %s:\n%s", reconstruct(
-        return_type), return_type.pretty())
+        return_type), return_type)
 
-    var_tc, context = self.gen(var_type, context=context)
-    ret_gen, context = self.gen_gen(return_type, context=context)
+    var_tc, context = var_type.gen(context=context)
+    ret_gen, context = return_type.gen_gen(constraint=true_func(), context=context)
 
     def f():
         return lambda x: ret_gen() if rand_bool() or var_tc(x) else PyCheckFailError

@@ -10,6 +10,6 @@ from .reftype import RefType
 from .result import Result
 from .type_annotation import get_reftype, has_reftype, reftype
 from .typecheck import typecheck
-from .user_util import generator, parse, verbose
+from .user_util import generator, parse, typechecker, verbose
 
 __version__ = _version(__name__)
