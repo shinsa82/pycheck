@@ -1,1 +1,0 @@
-reveal_type(sum)

@@ -17,21 +17,22 @@ decorator = "*"
 more-itertools = "*"
 environs = "*"
 humanize = "*"
-sympy = "^1.11.1"
+sympy = "*"
 lark = "^1.1.5"
-autopep8 = "^2.0.1"
-mathjax = "^0.1.2"
-jupyterlab-mathjax3 = "^4.3.0"
-rich = "^13.3.1"
-pytest-repeat = "^0.9.1"
-numpy = "^1.26.0"
+rich = "*"
+numpy = "*"
 
 [tool.poetry.dev-dependencies]
-autopep8 = "*"
-isort = "*"
+
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
+pytest-repeat = "*"
 mypy = "*"
 jupyterlab = "4.*"
+mathjax = "*"
+jupyterlab-mathjax3 = "^4.3.0"
+autopep8 = "*"
+isort = "*"
 
 [tool.pylint.basic]
 good-names = ["f", "g"]
