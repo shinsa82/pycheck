@@ -33,7 +33,7 @@
 			}
 		}
 	},
-	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && git config advice.addEmptyPathspec false"
 	// 👇 Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }
